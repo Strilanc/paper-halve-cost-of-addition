@@ -2,7 +2,9 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage[pdfpagelabels,pdftex,bookmarks,breaklinks]{hyperref}
+\usepackage{tikz}
 \usepackage[all]{hypcap}
+\input{Qcircuit}
 \hypersetup{colorlinks,citecolor=blue,urlcolor=blue,linkcolor=blue}
 
 \title{Saving $T$ gates by reusing $|A\rangle$ states}
@@ -16,10 +18,10 @@
 \maketitle
 
 \begin{abstract}
-A temporary Toffoli gate (sometimes called ``phase-congruent" or ``matched") must apply the correct state permutation, but may incorrectly phase or entangle the involved qubits until a later Toffoli gate fixes these errors while uncomputing the permutation.
+A temporary Toffoli gate (sometimes called ``phase-congruent" or ``matched") performs the same operation as a normal Toffoli gate, but may incorrectly phase or entangle the involved qubits until a later Toffoli gate fixes these errors while uncomputing the permutation.
 We improve the number of T gates needed to perform temporary Toffoli gates from 4 to 3 via non-destructive use of an ancilla in the state $|A\rangle = \frac{1}{\sqrt{2}} |0\rangle + \frac{1+i}{2} |1\rangle$.
 
-Many common circuits use temporary Toffoli gates, and $T$ gates dominate the cost of error corrected quantum computing, so this optimization is significant and widely applicable.
+Many quantum circuits use temporary Toffoli gates, and $T$ gates dominate the cost of error corrected quantum computing, so this optimization is significant and widely applicable.
 For example, we reduce the T-cost of $n$-bit addition from $8n + O(1)$ to $6n + O(1)$ which in turn reduces the overall cost of Shor's factoring algorithm by nearly 25\%.
 \end{abstract}
 
@@ -29,35 +31,49 @@ When no ancillae are available, a Toffoli gate requires seven T gates to perform
 If ancillae are available, that cost can be reduced to four [[[[cite]]] by doing a measurement teleportation thing.
 When a Toffoli gate is applied temporarily, in a fashion where phase errors are acceptable until the Toffoli is uncomputed, a simpler inline trick suffices for achieving 4 T gates per Toffoli.
 
+An operation $\tilde{U}$ is a temporary variant of $U$ if it meets the following criteria:
+
+$$\forall b \in \{0, 1\}^{\otimes n}, \; \tilde{U} \cdot \left( |b\rangle \otimes | \psi_0 \rangle \right) = \left( U |b \rangle \right) \otimes | \psi_{1,b} \rangle$$
+
+where $n$ is the number of qubits that $U$ acts on, $b$ is a computational basis state (a bitstring), $\psi_0$ is an input ancilla state, and $\psi_{1,c}$ is the various output ancilla states for each input $b$.
+If we start with a computational basis state, apply the operation, and trace out the ancilla, then the output state will be correct up to a global phase (that may differ depending on the input state).
+The phase and value of the traced-out ancilla may differ for different inputs, so $\tilde{U}$ will not perform the correct operation when its input is in superposition: it causes phase errors and produces entangled garbage.
+Informally speaking, $\tilde{U}$ does the right thing classically but causes quantum-specific problems (i.e. incoherent phases) that must be fixed by a later operation.
 
 
 
 See \autoref{fig:inline-toffoli}.
 
+\newcommand{\qH}{\gate{H}}
+\newcommand{\qT}{\gate{T}}
+\newcommand{\qTi}{\gate{T^\dagger}}
+\newcommand{\qS}{\gate{S}}
+\newcommand{\qSi}{\gate{S^\dagger}}
+\newcommand{\qA}{\lstick{|A\rangle}}
+\newcommand{\qO}{\lstick{|0\rangle}}
+
 \begin{figure}
-  \centering
-  \makebox[\linewidth]{
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &\ctrl{1} &\qw & &   & & &\qw &\qT &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{2} &\qw  &\ctrl{1} &\qw \\
+      &\ctrl{1} &\qw & & = & & &\qw &\qT &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\targ    &\qTi &\targ    &\qw \\
+      &\targ    &\qw & &   & & &\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\targ    &\qH  &\qw      &\qw \\
+    }
   }
   \caption{
-	Simple Toffoli construction with 7 T gates.
+	Simple Toffoli construction with seven T gates.
 	Doesn't require any ancillae or a later paired Toffoli.
   }
   \label{fig:inline-toffoli}
 \end{figure}
 
 \begin{figure}
-  \centering
-  \makebox[\linewidth]{
-  }
-  \caption{
-	Toffoli construction with 4 T gates based on measurement teleportation.
-  }
-  \label{fig:ancilla-toffoli}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \makebox[\linewidth]{
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &\ctrl{1} &\qw & &       & & &\ctrl{1} &\ctrl{1}     &\qw & &   & & &\qw &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\qw &\qw \\
+      &\ctrl{1} &\qw & & \cong & & &\ctrl{1} &\qSi         &\qw & & = & & &\qw &\qw &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\qw &\qw \\
+      &\targ    &\qw & &       & & &\targ    &\gate{Z}\qwx &\qw & &   & & &\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\qw \\
+    }
   }
   \caption{
 	Existing temporary Toffoli construction with 4 T gates.
@@ -66,11 +82,47 @@ See \autoref{fig:inline-toffoli}.
 \end{figure}
 
 \begin{figure}
-  \centering
-  \makebox[\linewidth]{
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &\ctrl{1} &\qw & &   & & &     &\qw &\qw &\qw      &\qw  &\ctrl{3} &\qw &\qw      &\qw  &\qw &\qw       &\qw  &\qw &\qw    &\ctrl{1}   &\qw \\
+      &\ctrl{1} &\qw & & = & & &     &\qw &\qw &\ctrl{2} &\qw  &\qw      &\qw &\ctrl{2} &\qw  &\qw &\qw       &\qw  &\qw &\qw    &\gate{Z}   &\qw \\
+      &\targ    &\qw & &   & & &     &\qw &\qw &\qw      &\qw  &\qw      &\qw &\qw      &\qw  &\qw &\targ     &\qw  &\qw &\qw    &\qw\cwx    &\qw \\
+      &         &    & &   & & & \qO &\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\ctrl{-1} &\qSi &\qH &\meter &\cw\cwx    & \\
+    }
+  }
+  \caption{
+	Toffoli construction with 4 T gates based on measurement teleportation.
+  }
+  \label{fig:ancilla-toffoli}
+\end{figure}
+
+\begin{figure}
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &    &\ctrl{1} &\qw & &       &&&     &\ctrl{1} &\ctrl{1} &\qw  &&&   & & & \lstick{x} &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\qw &\qw &\rstick{x} \\
+      &    &\ctrl{1} &\qw & & \cong &&&     &\ctrl{1} &\qS      &\qw  &&& = & & & \lstick{y} &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\qw &\qw &\rstick{y} \\
+      &\qO &\targ    &\qw & &       &&& \qO &\targ    &\qw      &\qw  &&&   & & & \qA        &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\qw &\rstick{x \land y} \\
+    }
+  }
+  \caption{
+	Control merging with three T gates.
+	The $|A\rangle$ state is recovered when uncomputing the merged control.
+  }
+  \label{fig:ancilla-temporary-toffoli}
+\end{figure}
+
+\begin{figure}
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &\ctrl{1} &\qw & &       &&&     &\ctrl{1} &\ctrl{1} &\qw  &&&   & & & \lstick{x} &\qw      &\qw  &\ctrl{3} &\qw &\qw      &\qw  &\qw &\qw       &\qw &\rstick{x} \\
+      &\ctrl{1} &\qw & & \cong &&&     &\ctrl{2} &\qS      &\qw  &&& = & & & \lstick{y} &\ctrl{2} &\qw  &\qw      &\qw &\ctrl{2} &\qw  &\qw &\qw       &\qw &\rstick{y} \\
+      &\targ    &\qw & &       &&&     &\targ    &\qw      &\qw  &&&   & & & \lstick{t} &\qw      &\qw  &\qw      &\qw &\qw      &\qw  &\qw &\targ     &\qw &\rstick{t \oplus (x \land y)} \\
+      &         &    & &       &&& \qO &\targ    &\qw      &\qw  &&&   & & & \qA        &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\ctrl{-1} &\qw &\rstick{x \land y} \\
+    }
   }
   \caption{
 	Our temporary Toffoli construction, which uses an $|A\rangle$ ancilla and 3 T gates.
+	The $|A\rangle$ state is recovered when uncomputing the temporary Toffoli.
   }
   \label{fig:ancilla-temporary-toffoli}
 \end{figure}
@@ -96,11 +148,16 @@ See \autoref{fig:inline-toffoli}.
 \end{figure}
 
 \begin{figure}
-  \centering
-  \makebox[\linewidth]{
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &    &\ctrl{2}          &\qw               &\qw &&     &&&     &\ctrl{2}          &\qw               &\qw &\ctrl{1} &\qw      &\qw &&& &&& \lstick{x} &\ctrl{2} &\qw      &\qw &\ctrl{3} &\qw  &\qw      &\qw &\qw      &\qw  &\qw      &\qw &\rstick{x}         \\
+      &    &\qw               &\ctrl{1}          &\qw &&\cong&&&     &\qw               &\ctrl{1}          &\qw &\qS      &\ctrl{1} &\qw &&&=&&& \lstick{y} &\qw      &\qw      &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{1} &\qw &\rstick{y}         \\
+      &    &\multigate{1}{+1} &\multigate{1}{+1} &\qw &&     &&&     &\multigate{1}{+1} &\multigate{1}{+1} &\qw &\qS\qwx  &\qS      &\qw &&& &&& \lstick{z} &\targ    &\ctrl{1} &\qw &\qw      &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\targ    &\qw &\rstick{(x+y+z)_0} \\
+      &\qO &\ghost{+1}        &\ghost{+1}        &\qw &&     &&& \qO &\ghost{+1}        &\ghost{+1}        &\qw &\qw      &\qw      &\qw &&& &&& \qA        &\qw      &\targ    &\qT &\targ    &\qSi &\targ    &\qT &\targ    &\qTi &\qH      &\qw &\rstick{(x+y+z)_1} \\
+    }
   }
   \caption{
-	Temporary addition construction.
+	Temporary full adder.
   }
   \label{fig:temporary-ancilla-addition}
 \end{figure}
@@ -108,7 +165,9 @@ See \autoref{fig:inline-toffoli}.
 Mention binary to unary as an example?
 
 
+Show example doing an $n$-control NOT with $6n + O(1)$ or $3n + O(1)$ if temporary.
 
+Mention that this trick works more generally. Anytime you have an ancilla that starts HT and ends Tdag H.
 
 
 \section{Acknowledgements}
