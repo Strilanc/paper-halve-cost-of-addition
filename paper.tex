@@ -1,0 +1,139 @@
+\documentclass[twocolumn,longbibliography]{quantumarticle-customized}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[pdfpagelabels,pdftex,bookmarks,breaklinks]{hyperref}
+\usepackage[all]{hypcap}
+\hypersetup{colorlinks,citecolor=blue,urlcolor=blue,linkcolor=blue}
+
+\title{Saving $T$ gates by reusing $|A\rangle$ states}
+\author{Craig Gidney}
+\affiliation{Google, Santa Barbara, CA 93117, USA}
+\email{craiggidney@google.com}
+
+\def\sectionautorefname{Section}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A temporary Toffoli gate (sometimes called ``phase-congruent" or ``matched") must apply the correct state permutation, but may incorrectly phase or entangle the involved qubits until a later Toffoli gate fixes these errors while uncomputing the permutation.
+We improve the number of T gates needed to perform temporary Toffoli gates from 4 to 3 via non-destructive use of an ancilla in the state $|A\rangle = \frac{1}{\sqrt{2}} |0\rangle + \frac{1+i}{2} |1\rangle$.
+
+Many common circuits use temporary Toffoli gates, and $T$ gates dominate the cost of error corrected quantum computing, so this optimization is significant and widely applicable.
+For example, we reduce the T-cost of $n$-bit addition from $8n + O(1)$ to $6n + O(1)$ which in turn reduces the overall cost of Shor's factoring algorithm by nearly 25\%.
+\end{abstract}
+
+\section{Introduction} \label{sec:introduction}
+
+When no ancillae are available, a Toffoli gate requires seven T gates to perform [[[cite]]].
+If ancillae are available, that cost can be reduced to four [[[[cite]]] by doing a measurement teleportation thing.
+When a Toffoli gate is applied temporarily, in a fashion where phase errors are acceptable until the Toffoli is uncomputed, a simpler inline trick suffices for achieving 4 T gates per Toffoli.
+
+
+
+
+See \autoref{fig:inline-toffoli}.
+
+\begin{figure}
+  \centering
+  \makebox[\linewidth]{
+  }
+  \caption{
+	Simple Toffoli construction with 7 T gates.
+	Doesn't require any ancillae or a later paired Toffoli.
+  }
+  \label{fig:inline-toffoli}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \makebox[\linewidth]{
+  }
+  \caption{
+	Toffoli construction with 4 T gates based on measurement teleportation.
+  }
+  \label{fig:ancilla-toffoli}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \makebox[\linewidth]{
+  }
+  \caption{
+	Existing temporary Toffoli construction with 4 T gates.
+  }
+  \label{fig:inline-temporary-toffoli}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \makebox[\linewidth]{
+  }
+  \caption{
+	Our temporary Toffoli construction, which uses an $|A\rangle$ ancilla and 3 T gates.
+  }
+  \label{fig:ancilla-temporary-toffoli}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \makebox[\linewidth]{
+  }
+  \caption{
+	$n$-bit inline addition with T-cost of $8n + O(1)$ based on [[[cite]]].
+  }
+  \label{fig:inline-addition}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \makebox[\linewidth]{
+  }
+  \caption{
+	$n$-bit addition with T-cost of $6n + O(1)$.
+  }
+  \label{fig:ancilla-addition}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \makebox[\linewidth]{
+  }
+  \caption{
+	Temporary addition construction.
+  }
+  \label{fig:temporary-ancilla-addition}
+\end{figure}
+
+Mention binary to unary as an example?
+
+
+
+
+
+\section{Acknowledgements}
+
+Austin.
+
+
+\bibliographystyle{plain}
+\bibliography{citations}
+
+\cite{barenco1995}
+https://arxiv.org/pdf/quant-ph/9503016.pdf   ->   the paired Toffoli construction that uses 4T
+
+https://arxiv.org/pdf/cond-mat/9409111.pdf   -> shows CCNOT can be done with three 2-qubit interactions, ignores single-qubit???
+
+
+https://arxiv.org/pdf/1308.4134.pdf -> proof of 7T gate minimum with no ancilla
+
+https://arxiv.org/pdf/1212.5069.pdf  ->   does a single Toffoli with four T gates by turning one of the controls classical
+
+https://arxiv.org/pdf/1210.0974.pdf  ->   a phase-neglected 4T gate construction that only uses a single layer of T gates
+
+
+Quantum Computation and Quantum Information -> shows standard decomposition into 7T gates. But do they say it's optimal?
+
+https://arxiv.org/pdf/1206.0758.pdf -> just an example of the 7T construction;;; probablynot relevant
+
+\end{document}
