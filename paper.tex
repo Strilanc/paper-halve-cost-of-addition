@@ -84,10 +84,10 @@ See \autoref{fig:inline-toffoli}.
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=1.5em @C=0.7em {
-      &\ctrl{1} &\qw & &   & & &     &\qw &\qw &\qw      &\qw  &\ctrl{3} &\qw &\qw      &\qw  &\qw &\qw       &\qw  &\qw &\qw    &\ctrl{1}   &\qw \\
-      &\ctrl{1} &\qw & & = & & &     &\qw &\qw &\ctrl{2} &\qw  &\qw      &\qw &\ctrl{2} &\qw  &\qw &\qw       &\qw  &\qw &\qw    &\gate{Z}   &\qw \\
-      &\targ    &\qw & &   & & &     &\qw &\qw &\qw      &\qw  &\qw      &\qw &\qw      &\qw  &\qw &\targ     &\qw  &\qw &\qw    &\qw\cwx    &\qw \\
-      &         &    & &   & & & \qO &\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\ctrl{-1} &\qSi &\qH &\meter &\cw\cwx    & \\
+      &\ctrl{1} &\qw & &   & & &     &\qw &\qw &\qw      &\qw  &\ctrl{3} &\qw &\qw      &\qw  &\qw &\qw  &\qw       &\qw &\qw    &\ctrl{1}       &\qw \\
+      &\ctrl{1} &\qw & & = & & &     &\qw &\qw &\ctrl{2} &\qw  &\qw      &\qw &\ctrl{2} &\qw  &\qw &\qw  &\qw       &\qw &\qw    &\gate{Z}       &\qw \\
+      &\targ    &\qw & &   & & &     &\qw &\qw &\qw      &\qw  &\qw      &\qw &\qw      &\qw  &\qw &\qw  &\targ     &\qw &\qw    &\qw\cwx        &\qw \\
+      &         &    & &   & & & \qO &\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\qSi &\ctrl{-1} &\qH &\meter &\cw\cwx\bullet & \\
     }
   }
   \caption{
@@ -107,6 +107,51 @@ See \autoref{fig:inline-toffoli}.
   \caption{
 	Control merging with three T gates.
 	The $|A\rangle$ state is recovered when uncomputing the merged control.
+  }
+  \label{fig:ancilla-temporary-toffoli}
+\end{figure}
+
+\begin{figure}
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &x &&\ctrl{1} &\qw & x  && &&          &&\qw &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw  &\qw &\\
+      &y &&\ctrl{1} &\qw & y  &&=&&          &&\qw &\qw &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\qw      &\qw &\qw  &\qw &\\
+      &  &&         &\qw & xy && &&|0\rangle &&\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\targ    &\qH &\qSi &\qw &\\
+    }
+  }
+  \caption{
+	Control merging with T-cost of 4.
+	The leading $H$ and $T$ gates can be cut by directly feeding an $|A\rangle$ state into the circuit, instead of using one to perform the $T$ gate.
+  }
+  \label{fig:ancilla-temporary-toffoli}
+\end{figure}
+
+\begin{figure}
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &x  &&\ctrl{1} &\qw &x && &&\qw &\qw    &\ctrl{1} &\qw \\
+      &y  &&\ctrl{1} &\qw &y &&=&&\qw &\qw    &\gate{Z} &\qw \\
+      &xy &&\qw      &    &  && &&\qH &\meter &\cw \cwx \bullet &    \\
+    }
+  }
+  \caption{
+	Control un-merging with T-cost of 0.
+  }
+  \label{fig:ancilla-temporary-toffoli}
+\end{figure}
+
+\begin{figure}
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &\ctrl{1} &\qw && &&\ctrl{1} &\qw      &\ctrl{1} &\qw && &&          &&\qw &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw  &\qw      &\qw &\qw    &\ctrl{1}         &\qw \\
+      &\ctrl{2} &\qw && &&\ctrl{1} &\qw      &\ctrl{1} &\qw && &&          &&\qw &\qw &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\qw      &\qw &\qw  &\qw      &\qw &\qw    &\gate{Z}         &\qw \\
+      &         &    &&=&&         &\ctrl{1} &\qw      &    &&=&&|0\rangle &&\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\targ    &\qH &\qSi &\ctrl{1} &\qH &\meter &\cw \cwx \bullet &    \\
+      &\targ    &\qw && &&\qw      &\targ    &\qw      &\qw && &&          &&\qw &\qw &\qw      &\qw  &\qw      &\qw &\qw      &\qw  &\qw      &\qw &\qw  &\targ    &\qw &\qw    &\qw              &\qw \\
+    }
+  }
+  \caption{
+	Toffoli gate from control merging and un-merging with T-cost 4.
+	Equivalent to the construction from [[[[cite]]]
   }
   \label{fig:ancilla-temporary-toffoli}
 \end{figure}
@@ -194,5 +239,9 @@ https://arxiv.org/pdf/1210.0974.pdf  ->   a phase-neglected 4T gate construction
 Quantum Computation and Quantum Information -> shows standard decomposition into 7T gates. But do they say it's optimal?
 
 https://arxiv.org/pdf/1206.0758.pdf -> just an example of the 7T construction;;; probablynot relevant
+
+
+
+https://arxiv.org/pdf/1706.05113.pdf   has a ctrl-add with 21N + O(1). This technique+commutators achieves 8N.
 
 \end{document}
