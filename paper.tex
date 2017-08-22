@@ -4,10 +4,18 @@
 \usepackage[pdfpagelabels,pdftex,bookmarks,breaklinks]{hyperref}
 \usepackage{tikz}
 \usepackage[all]{hypcap}
-\input{Qcircuit}
 \hypersetup{colorlinks,citecolor=blue,urlcolor=blue,linkcolor=blue}
 
-\title{Saving $T$ gates by reusing $|A\rangle$ states}
+\input{Qcircuit}
+\newcommand{\qH}{\gate{H}}
+\newcommand{\qT}{\gate{T}}
+\newcommand{\qTi}{\gate{T^\dagger}}
+\newcommand{\qS}{\gate{S}}
+\newcommand{\qSi}{\gate{S^\dagger}}
+\newcommand{\qA}{\lstick{|A\rangle}}
+\newcommand{\qO}{\lstick{|0\rangle}}
+
+\title{T gates, temporary Toffolis, and halving the cost of quantum computation}
 \author{Craig Gidney}
 \affiliation{Google, Santa Barbara, CA 93117, USA}
 \email{craiggidney@google.com}
@@ -18,68 +26,81 @@
 \maketitle
 
 \begin{abstract}
-A temporary Toffoli gate (sometimes called ``phase-congruent" or ``matched") performs the same operation as a normal Toffoli gate, but may incorrectly phase or entangle the involved qubits until a later Toffoli gate fixes these errors while uncomputing the permutation.
-We improve the number of T gates needed to perform temporary Toffoli gates from 4 to 3 via non-destructive use of an ancilla in the state $|A\rangle = \frac{1}{\sqrt{2}} |0\rangle + \frac{1+i}{2} |1\rangle$.
+We show how to compute the logical-and of two controls using four T gates, and uncompute it using no T gates.
+This construction halves the average T-cost of temporary Toffoli gates.
+A temporary Toffoli gate is one which will be uncomputed later (typically by a second Toffoli gate).
 
-Many quantum circuits use temporary Toffoli gates, and $T$ gates dominate the cost of error corrected quantum computing, so this optimization is significant and widely applicable.
-For example, we reduce the T-cost of $n$-bit addition from $8n + O(1)$ to $6n + O(1)$ which in turn reduces the overall cost of Shor's factoring algorithm by nearly 25\%.
+We use our temporary logical-and construction to produce quantum circuits with T gate counts lower than previously reported.
+T gates dominate the cost of surface-code-based error corrected quantum computation.
+Temporary Toffolis are used in many common quantum circuits, such as addition.
+As such, the optimization we present in this paper are widely applicable and represent significant savings in the projected costs of quantum computation.
+For example, by applying previously known optimizations and the ones presented in this paper, we improve on the projected T-cost of Shor's algorithm from [[[[cite]]] by 70\% and the projected minimum time down by 66%.
+
+We demonstrate an $n$-bit adder with T-cost $4n + O(1)$, a controlled $n$-bit adder with T-cost $8n + O(1)$, an $n$-controlled NOT with T-cost $4n + O(1)$, and a temporary pop-count with T-cost $6n + O(1)$.
+
+We discuss investing $|A\rangle$ states, a fallback optimization technique that may reduce the number of T gates needed to compute quantum circuits not amenable to temporary ANDs.
 \end{abstract}
 
 \section{Introduction} \label{sec:introduction}
 
-When no ancillae are available, a Toffoli gate requires seven T gates to perform [[[cite]]].
-If ancillae are available, that cost can be reduced to four [[[[cite]]] by doing a measurement teleportation thing.
-When a Toffoli gate is applied temporarily, in a fashion where phase errors are acceptable until the Toffoli is uncomputed, a simpler inline trick suffices for achieving 4 T gates per Toffoli.
-
-An operation $\tilde{U}$ is a temporary variant of $U$ if it meets the following criteria:
-
-$$\forall b \in \{0, 1\}^{\otimes n}, \; \tilde{U} \cdot \left( |b\rangle \otimes | \psi_0 \rangle \right) = \left( U |b \rangle \right) \otimes | \psi_{1,b} \rangle$$
-
-where $n$ is the number of qubits that $U$ acts on, $b$ is a computational basis state (a bitstring), $\psi_0$ is an input ancilla state, and $\psi_{1,c}$ is the various output ancilla states for each input $b$.
-If we start with a computational basis state, apply the operation, and trace out the ancilla, then the output state will be correct up to a global phase (that may differ depending on the input state).
-The phase and value of the traced-out ancilla may differ for different inputs, so $\tilde{U}$ will not perform the correct operation when its input is in superposition: it causes phase errors and produces entangled garbage.
-Informally speaking, $\tilde{U}$ does the right thing classically but causes quantum-specific problems (i.e. incoherent phases) that must be fixed by a later operation.
-
-
-
-See \autoref{fig:inline-toffoli}.
-
-\newcommand{\qH}{\gate{H}}
-\newcommand{\qT}{\gate{T}}
-\newcommand{\qTi}{\gate{T^\dagger}}
-\newcommand{\qS}{\gate{S}}
-\newcommand{\qSi}{\gate{S^\dagger}}
-\newcommand{\qA}{\lstick{|A\rangle}}
-\newcommand{\qO}{\lstick{|0\rangle}}
+The textbook construction of a Toffoli gate uses seven T gates [[[cite textbook]]] \autoref{fig:textbook-toffoli} and eight Clifford gates.
+On an error corrected quantum computer that uses the surface code, T gates are XXX orders of magnitude more expensive than Clifford gates [[[cite]]].
+Because of this disparity, optimizing error corrected quantum circuits largely consists of reducing their T-cost (the number of T gates used, or rather the number of $|A\rangle = \frac{1}{\sqrt{2}} |0\rangle + \frac{1+i}{2} |1\rangle$ states which must be distilled in order to perform those T gates).
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=1.5em @C=0.7em {
-      &\ctrl{1} &\qw & &   & & &\qw &\qT &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{2} &\qw  &\ctrl{1} &\qw \\
-      &\ctrl{1} &\qw & & = & & &\qw &\qT &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\targ    &\qTi &\targ    &\qw \\
-      &\targ    &\qw & &   & & &\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\targ    &\qH  &\qw      &\qw \\
+      &\ctrl{1}&\qw & &   & & &\ctrl{1}&\qw  &\ctrl{1}&\qT &\qw     &\qw  &\ctrl{2}&\qw &\qw     &\qw  &\ctrl{2}&\qw &\qw \\
+      &\ctrl{1}&\qw & & = & & &\targ   &\qTi &\targ   &\qT &\ctrl{1}&\qw  &\qw     &\qw &\ctrl{1}&\qw  &\qw     &\qw &\qw \\
+      &\targ   &\qw & &   & & &\qw     &\qw  &\qH     &\qT &\targ   &\qTi &\targ   &\qT &\targ   &\qTi &\targ   &\qH &\qw \\
     }
   }
   \caption{
-	Simple Toffoli construction with seven T gates.
-	Doesn't require any ancillae or a later paired Toffoli.
+	Textbook Toffoli construction [[[[cite]]]] from eight Clifford gates and seven T gates.
   }
-  \label{fig:inline-toffoli}
+  \label{fig:textbook-toffoli}
 \end{figure}
+
+The textbook Toffoli construction is optimal in some highly constrained situations (e.g. not allowed to use any ancilla qubits and not allowed to merge T gates across operations [[[cite]]]), but is not optimal in general.
+For example, when two Toffoli gates share a control, applying the textbook construction to each places two $T$ gates on the shared control.
+These two $T$ gates can be merged into a single $S$ gate, thereby reducing the T-cost of each Toffoli from 7 to 6.
+
+More commonly, Toffoli gates tend to come in matched pairs where one is uncomputing the effect of the other.
+When this occurs, the three $T$ gates on the control qubits of the textbook construction are no longer necessary \autoref{fig:bad-phase-toffoli}.
+Removing those $T$ gates introduces phase errors, but the second Toffoli gate will uncompute those errors while uncomputing the state permutation.
+This technique reduces the T-cost of paired Toffolis from 7 to 4.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=1.5em @C=0.7em {
-      &\ctrl{1} &\qw & &       & & &\ctrl{1} &\ctrl{1}     &\qw & &   & & &\qw &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\qw &\qw \\
-      &\ctrl{1} &\qw & & \cong & & &\ctrl{1} &\qSi         &\qw & & = & & &\qw &\qw &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\qw &\qw \\
-      &\targ    &\qw & &       & & &\targ    &\gate{Z}\qwx &\qw & &   & & &\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\qw \\
+      &\ctrl{1} &\qw & &       & & &\ctrl{1}     &\ctrl{1} &\qw & &   & & &\qw &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\qw &\qw \\
+      &\ctrl{1} &\qw & & \cong & & &\qS          &\ctrl{1} &\qw & & = & & &\qw &\qw &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\qw &\qw \\
+      &\targ    &\qw & &       & & &\gate{Z}\qwx &\targ    &\qw & &   & & &\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\qw \\
     }
   }
   \caption{
 	Existing temporary Toffoli construction with 4 T gates.
   }
-  \label{fig:inline-temporary-toffoli}
+  \label{fig:bad-phase-toffoli}
 \end{figure}
+
+In [[[cite]]], Jones improves on the paired construction by demonstrating how to reduce the T-cost of any Toffoli to 4.
+Jones does this by using a temporary ancilla and applying an erasure technique. [[[figures]]]
+
+We improve on Jones by separating their construction into three pieces (merge, use, erase), and showing how to apply these pieces to circuit construction tasks.
+In particular, we reduce the average T-cost of paired Toffolis from 4 to 2.
+Many common circuits (e.g. addition) have paired Toffolis, and so this optimization can halve their T-cost.
+
+
+
+
+\section{Temporary ANDs}
+
+
+See \autoref{fig:inline-toffoli}.
+
+
+
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
@@ -99,14 +120,16 @@ See \autoref{fig:inline-toffoli}.
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=1.5em @C=0.7em {
-      &    &\ctrl{1} &\qw & &       &&&     &\ctrl{1} &\ctrl{1} &\qw  &&&   & & & \lstick{x} &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\qw &\qw &\rstick{x} \\
-      &    &\ctrl{1} &\qw & & \cong &&&     &\ctrl{1} &\qS      &\qw  &&& = & & & \lstick{y} &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\qw &\qw &\rstick{y} \\
-      &\qO &\targ    &\qw & &       &&& \qO &\targ    &\qw      &\qw  &&&   & & & \qA        &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\qw &\rstick{x \land y} \\
+      &x &&\ctrl{1} &\qw & x  && &&          &&\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw &\qw &\\
+      &y &&\ctrl{1} &\qw & y  &&=&&          &&\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\qw      &\qw &\qw &\qw &\\
+      &  &&         &\qw & xy && &&|A\rangle &&\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\targ    &\qH &\qS &\qw &\\
     }
   }
   \caption{
-	Control merging with three T gates.
-	The $|A\rangle$ state is recovered when uncomputing the merged control.
+	Control merging with T-cost of 4 (three T gates, one $|A\rangle$ state).
+	The $|A\rangle$ state is fed directly into the circuit, instead of using an $H$ and $T$ gate on a $|0\rangle$ state (which would consume an $|A\rangle$ state anyways).
+	The input $|A\rangle$ state can be recovered by using the un-merging construction in \autoref{fig:unmerge-recover-a}, reducing the net T cost of this circuit to 3.
+	However, the un-merging construction in \autoref{fig:unmerge-free} is a better choice, despite not recovering the $|A\rangle$ state, because the total T-cost of merge+unmerge using \autoref{fig:unmerge-free} is 4+0=4 instead of 4+3-1=6.
   }
   \label{fig:ancilla-temporary-toffoli}
 \end{figure}
@@ -114,16 +137,16 @@ See \autoref{fig:inline-toffoli}.
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=1.5em @C=0.7em {
-      &x &&\ctrl{1} &\qw & x  && &&          &&\qw &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw  &\qw &\\
-      &y &&\ctrl{1} &\qw & y  &&=&&          &&\qw &\qw &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\qw      &\qw &\qw  &\qw &\\
-      &  &&         &\qw & xy && &&|0\rangle &&\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\targ    &\qH &\qSi &\qw &\\
+      &x_k &&\targ    &\ctrl{1}&\qw      &\qw &\qw &\qw &\qw     &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw     &\qw &\qw &\qw      &\ctrl{1}&\targ    &\ctrl{1}&\qw &x_k     &&&&& \\
+      &y_k &&\targ    &\ctrl{1}&\qw      &\qw &\qw &\qw &\qw     &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw     &\qw &\qw &\qw      &\ctrl{1}&\qw      &\targ   &\qw &&&(x+y)_k &&& \\
+      &    &&         &        &\ctrl{1} &\qw &\qw &\qw &\qw     &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw     &\qw &\qw &\ctrl{1} &\qw     &         &        &    &&&        &&& \\
+      &c_k &&\ctrl{-3}&\qw     &\targ    &\qw &\qw &    &c_{k+1} &    &    &    &\ldots &    &    &    &c_{k+1} &    &    &\targ    &\qw     &\ctrl{-3}&\qw     &\qw &c_k     &&&&& \\
     }
   }
   \caption{
-	Control merging with T-cost of 4.
-	The leading $H$ and $T$ gates can be cut by directly feeding an $|A\rangle$ state into the circuit, instead of using one to perform the $T$ gate.
+	Inline full adder block with a T-cost of 4.
   }
-  \label{fig:ancilla-temporary-toffoli}
+  \label{fig:addition}
 \end{figure}
 
 \begin{figure}
@@ -137,7 +160,7 @@ See \autoref{fig:inline-toffoli}.
   \caption{
 	Control un-merging with T-cost of 0.
   }
-  \label{fig:ancilla-temporary-toffoli}
+  \label{fig:unmerge-free}
 \end{figure}
 
 \begin{figure}
@@ -152,6 +175,22 @@ See \autoref{fig:inline-toffoli}.
   \caption{
 	Toffoli gate from control merging and un-merging with T-cost 4.
 	Equivalent to the construction from [[[[cite]]]
+  }
+  \label{fig:ancilla-temporary-toffoli}
+\end{figure}
+
+\begin{figure}
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &\ctrl{1} &\qw &\qw &\qw    &\qw &\qw &\ctrl{1} &\qw && &&\ctrl{1} &\qw      &\qw &\qw &\qw    &\qw &\qw &\qw      &\ctrl{1} &\qw & \\
+      &\ctrl{2} &\qw &\qw &\qw    &\qw &\qw &\ctrl{2} &\qw && &&\ctrl{1} &\qw      &\qw &\qw &\qw    &\qw &\qw &\qw      &\ctrl{1} &\qw & \\
+      &         &    &    &       &    &    &         &    &&=&&         &\ctrl{1} &\qw &\qw &\qw    &\qw &\qw &\ctrl{1} &\qw      &    & \\
+      &\targ    &\qw &    &\ldots &    &    &\targ    &\qw && &&\qw      &\targ    &\qw &    &\ldots &    &    &\targ    &\qw      &\qw & \\
+    }
+  }
+  \caption{
+	Toffoli gate pair from control merging and un-merging with T-cost 4.
+	Equivalent to the construction from [[[[cite]]].
   }
   \label{fig:ancilla-temporary-toffoli}
 \end{figure}
@@ -183,6 +222,21 @@ See \autoref{fig:inline-toffoli}.
 \end{figure}
 
 \begin{figure}
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &x  &&\ctrl{1} &\qw &x && && \qw  &\qw &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw &           \\
+      &y  &&\ctrl{1} &\qw &y &&=&& \qw  &\qw &\qw      &\qw &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw &           \\
+      &xy &&\qw      &    &  && && \qSi &\qH &\targ    &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qw &|A \rangle \\
+    }
+  }
+  \caption{
+	A non-optimal unmerging circuit that uses three $T$ gates, but recovers an $|A\rangle$ state.
+	Avoids measurement, but has a net T-cost of two (which is worse than \autoref{fig:unmerge-free}'s T-cost of zero).
+  }
+  \label{fig:unmerge-recover-a}
+\end{figure}
+
+\begin{figure}
   \centering
   \makebox[\linewidth]{
   }
@@ -195,10 +249,10 @@ See \autoref{fig:inline-toffoli}.
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=1.5em @C=0.7em {
-      &    &\ctrl{2}          &\qw               &\qw &&     &&&     &\ctrl{2}          &\qw               &\qw &\ctrl{1} &\qw      &\qw &&& &&& \lstick{x} &\ctrl{2} &\qw      &\qw &\ctrl{3} &\qw  &\qw      &\qw &\qw      &\qw  &\qw      &\qw &\rstick{x}         \\
-      &    &\qw               &\ctrl{1}          &\qw &&\cong&&&     &\qw               &\ctrl{1}          &\qw &\qS      &\ctrl{1} &\qw &&&=&&& \lstick{y} &\qw      &\qw      &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{1} &\qw &\rstick{y}         \\
-      &    &\multigate{1}{+1} &\multigate{1}{+1} &\qw &&     &&&     &\multigate{1}{+1} &\multigate{1}{+1} &\qw &\qS\qwx  &\qS      &\qw &&& &&& \lstick{z} &\targ    &\ctrl{1} &\qw &\qw      &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\targ    &\qw &\rstick{(x+y+z)_0} \\
-      &\qO &\ghost{+1}        &\ghost{+1}        &\qw &&     &&& \qO &\ghost{+1}        &\ghost{+1}        &\qw &\qw      &\qw      &\qw &&& &&& \qA        &\qw      &\targ    &\qT &\targ    &\qSi &\targ    &\qT &\targ    &\qTi &\qH      &\qw &\rstick{(x+y+z)_1} \\
+      &    &\ctrl{2}          &\qw               &\qw &&     &&&     &\qS      &\qS      &\gate{Z}     &\ctrl{2}          &\qw               &\qw &&& &&& \lstick{x} &\ctrl{2} &\qw      &\qw &\ctrl{3} &\qw  &\qw      &\qw &\qw      &\qw  &\qw      &\qw &\rstick{x}         \\
+      &    &\qw               &\ctrl{1}          &\qw &&\cong&&&     &\ctrl{-1}&\qS \qwx &\gate{Z}\qwx &\qw               &\ctrl{1}          &\qw &&&=&&& \lstick{y} &\qw      &\qw      &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{1} &\qw &\rstick{y}         \\
+      &    &\multigate{1}{+1} &\multigate{1}{+1} &\qw &&     &&&     &\qw      &\ctrl{-1}&\qw          &\multigate{1}{+1} &\multigate{1}{+1} &\qw &&& &&& \lstick{z} &\targ    &\ctrl{1} &\qw &\qw      &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\targ    &\qw &\rstick{(x+y+z)_0} \\
+      &\qO &\ghost{+1}        &\ghost{+1}        &\qw &&     &&& \qO &\qw      &\qw      &\ctrl{-2}    &\ghost{+1}        &\ghost{+1}        &\qw &&& &&& \qA        &\qw      &\targ    &\qT &\targ    &\qSi &\targ    &\qT &\targ    &\qTi &\qH      &\qw &\rstick{(x+y+z)_1} \\
     }
   }
   \caption{
@@ -243,5 +297,8 @@ https://arxiv.org/pdf/1206.0758.pdf -> just an example of the 7T construction;;;
 
 
 https://arxiv.org/pdf/1706.05113.pdf   has a ctrl-add with 21N + O(1). This technique+commutators achieves 8N.
+
+
+https://pdfs.semanticscholar.org/8b84/d1bc2928922937a16205f9d8c925ff76689b.pdf     has a pretty good ripple carry
 
 \end{document}
