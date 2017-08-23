@@ -26,10 +26,10 @@
 \maketitle
 
 \begin{abstract}
-A ``temporary Toffoli" is a doubly-controlled NOT operation that will later be uncomputed by a second double-controlled NOT.
+A ``temporary Toffoli" is a doubly-controlled-not operation that will later be uncomputed by a second double-controlled-not.
 We construct temporary Toffoli gates using four T gates; half as many as previously reported.
 We demonstrate how to apply our construction (and other optimizations) to common operations and algorithms, and show significant improvement over previously reported T-costs.
-For example we cut the reported T-cost of addition by 50\%, the reported T-cost of controlled-addition by 70\%, and the reported T-cost of Shor's algorithm by ?????\%.
+We reduce the reported T-cost of addition by 50\% and the reported T-cost of Shor's algorithm by ?????\%.
 
 T gates dominate the cost of surface-code-based quantum computation.
 Temporary Toffolis are a basic building block that applies to many quantum circuits.
@@ -44,7 +44,7 @@ The surface code is a quantum error correcting code that works on a 2D nearest-n
 This makes the surface code a likely component in the architecture of large error corrected quantum computers, because 2D arrays of qubits with nearest-neighbor connections are possible with many qubit technologies [[[[cite so much]]]] and other known error correcting codes have lower thresholds or require higher connectivity [[[[cite so much]]]].
 
 One of the downsides of the surface code is that it has no cheap mechanism to apply non-Clifford operations such as $T$ gates.
-Instead, $T$ gates are performed by distilling and consuming $|A\rangle = \frac{1}{\sqrt{2}} (|0\rangle + e^{i \pi/4} |1\rangle$ states.
+Instead, $T$ gates are performed by distilling and consuming $|A\rangle = \frac{1}{\sqrt{2}} (|0\rangle + e^{i \pi/4} |1\rangle)$ states.
 Consuming an $|A\rangle$ state to perform a T gate is simple (see \autoref{fig:t-equals-a}), but distilling $|A\rangle$ states has significant cost.
 
 \begin{figure}
@@ -60,15 +60,15 @@ Consuming an $|A\rangle$ state to perform a T gate is simple (see \autoref{fig:t
   \label{fig:t-equals-a}
 \end{figure}
 
-In [[[[cite]]]] the $|A\rangle$ state distillation is done by preparing an EPR pair $(P, Q)$, moving $P$ out of the surface code and into a different error correcting code that can perform $T$ gates, and using a $T$ gate within that code to rotate and measure $P$ along an axis correlated with the diagonal $X+Y$ axis of $Q$.
+In [[[[cite]]]] the $|A\rangle$ state distillation is done by preparing an EPR pair $(P, Q)$, translating $P$ out of the surface code and into a different error correcting code that can perform $T$ gates, and using a $T$ gate within that code to rotate and measure $P$ along an axis correlated with the diagonal $X+Y$ axis of $Q$.
 If this process succeeds without an error being detected, it steers \cite{Wiseman2007} $Q$ into the $|A\rangle$ state or else into the complementary state $Z|A\rangle$.
 The $Z$ rotation is easily corrected, and the result of measuring $P$ indicates whether the correction is needed or not.
 
-The resulting `foothold' $|A\rangle$ states have a non-negligible amount of noise, but can be used to power T gates for rounds of distillation occurring entirely within the surface code.
-Each round of distillation reduces the amount of noise in the final states, but at significant cost.
-After accounting for distilling the $|A\rangle$ state, the spacetime volume cost of a T gate is one to two orders of magnitude higher than Clifford operations native to the surface code (such as the CNOT gate) [[[[cite]]]].
+The resulting `foothold' $|A\rangle$ states have a non-negligible amount of noise, but can be used to perform approximate T gates powering additional rounds of distillation occurring entirely within the surface code.
+After accounting for the cost of distilling a sufficiently accurate $|A\rangle$ state, the spacetime volume cost of performing a T gate is one to two orders of magnitude higher than performing operations native to the surface code (such as the CNOT gate) [[[[cite]]]].
 
 Because T gates are so expensive for the surface code, and the surface code is a likely component of future quantum computers, it is important to consider and optimize the number of T gates used by quantum circuits.
+
 In this paper, we focus on optimizing the number of T gates needed to perform Toffoli gates that will later be uncomputed by a second Toffoli gate (``temporary Toffoli gates").
 Temporary Toffolis show up in many circuits, especially ones that involve computing and uncomputing classical functions, so these optimizations are widely applicable.
 
@@ -77,7 +77,7 @@ In \autoref{sec:introduction}, we motivate the problem and insert self-referenti
 \autoref{sec:review} discusses how previous work on optimizing the T gate counts of Toffolis improved the cost of temporary Toffolis from 14 to 8.
 In \autoref{sec:invest}, we show how to improve the cost of temporary Toffolis from 8 to 6 by investing and later recovering an $|A\rangle$ state instead of consuming it to perform T gates.
 \autoref{sec:temporary-and} explains an ancilla erasing trick that improves the cost of temporary Toffolis further, from 6 to 4.
-This leads to \autoref{sec:circuit-constructions}, where we demonstrate how to use our constructions to significantly improve the T-cost of several basic arithmetic tasks (e.g. halving the T-cost of addition).
+This leads to \autoref{sec:circuit-constructions}, where we demonstrate how to use our constructions to improve the T-cost of several basic arithmetic tasks (e.g. halving the T-cost of addition).
 Finally, \autoref{sec:conclusion} concludes and discusses future work.
 
 
@@ -124,8 +124,7 @@ For example, when several adjacent Toffoli gates share the same controls, all bu
 
 It is not common for adjacent Toffolis to have the same controls, but it is common for a Toffoli to later be uncomputed by a second matching Toffoli (i.e. for the Toffoli's effect to be temporary).
 When this occurs, the three $T$ gates on the control qubits of the textbook construction can be omitted.
-This introduces phase errors (see \autoref{fig:bad-phase-toffoli}), but the second Toffoli gate will uncompute those errors while uncomputing the state permutation (see \autoref{fig:cancelled-bad-phase-toffoli}) \cite{Barenco1995}.
-This technique reduces the T-cost of paired Toffolis from 7 to 4.
+This introduces phase errors (see \autoref{fig:bad-phase-toffoli}), but the second Toffoli gate can uncompute those errors while uncomputing the state permutation \cite{Barenco1995} (see \autoref{fig:cancelled-bad-phase-toffoli}).
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
@@ -151,16 +150,18 @@ This technique reduces the T-cost of paired Toffolis from 7 to 4.
     }
   }
   \caption{
-	When two Toffolis form a compute/uncompute pair, they cancel phase errors in underlying constructions.
-	Fixes the problem with the construction in \autoref{fig:bad-phase-toffoli}, achieving a per-Toffoli T-cost of 4 for paired Toffolis \cite{Barenco1995}.
+	When two Toffolis form a compute/uncompute pair, they can cancel each others' phase errors.
+	Fixes the problem with the construction in \autoref{fig:bad-phase-toffoli}, and achieves a per-Toffoli T-cost of 4 for paired Toffolis \cite{Barenco1995}.
   }
   \label{fig:cancelled-bad-phase-toffoli}
 \end{figure}
 
-In \cite{Jones2013}, Jones shows how to perform an Toffoli with a T-cost of 4 even when not pairs.
-They do so by involving an ancilla qubit and an erasure technique that turns what would have been a quantum control into a classical control.
+The paired-phase-correction trick improves the T-cost of temporary Toffolis from 14 (seven to compute, seven to uncompute) to 8 (four to compute, four to uncompute).
+
+In \cite{Jones2013}, Jones shows how to perform an {\em unpaired} Toffoli with four T gates.
+They use an ancilla qubit and an erasure technique that turns what would have been a quantum control into a classical control.
+They also re-arrange the remaining T gates into a single column, creating a circuit with T-depth of 1.
 We show this construction in \autoref{fig:jones-toffoli}.
-Jones also shows how to rearrange all of the T gates into the same column, so that the Toffoli construction has a T-depth of 1 (see figure?).
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
@@ -172,7 +173,7 @@ Jones also shows how to rearrange all of the T gates into the same column, so th
     }
   }
   \caption{
-	Toffoli construction with 4 T gates based on measurement teleportation.
+	Toffoli construction with T-cost of 4 from \cite{Jones2013}.
   }
   \label{fig:jones-toffoli}
 \end{figure}
@@ -184,36 +185,61 @@ Four T gates for the initial Toffoli, and four T gates to uncompute its effect l
 \section{Investing $|A\rangle$ states}
 \label{sec:invest}
 
+The seed for this paper was an idea that accidentally improved the T-cost of a Toffoli from 7 to 6 in a surprising way.
+Instead of performing a Toffoli directly onto the target qubit, we performed the Toffoli indirectly via an ancilla.
+We started with a clean ancilla in the $|0\rangle$ state, applied a Toffoli to store the logical-and of the two controls in the ancilla, used the ancilla to control a CNOT onto the intended target, then uncomputed the ancilla.
+
+Initially, this indirect-Toffoli construction seems pointless.
+It has a T-cost of 8 even when using the phase-neglected construction, which is worse than the naive T-cost of 7.
+However, as shown in \autoref{fig:indirect-toffoli}, it turns out that the last T gate in the circuit is being used to uncompute an $|A\rangle$ state on the ancilla.
+Dropping this T gate not only reduces the T-cost from 8 to 7, it recovers an $|A\rangle$ state that can be used to power some other T gate.
+This improves the net T-cost to 6.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=1.5em @C=0.7em {
-      &\ctrl{1} &\qw & &       &&&     &\ctrl{1} &\ctrl{1} &\qw  &&&   & & & \lstick{x} &\qw      &\qw  &\ctrl{3} &\qw &\qw      &\qw  &\qw &\qw       &\qw &\rstick{x} \\
-      &\ctrl{1} &\qw & & \cong &&&     &\ctrl{2} &\qS      &\qw  &&& = & & & \lstick{y} &\ctrl{2} &\qw  &\qw      &\qw &\ctrl{2} &\qw  &\qw &\qw       &\qw &\rstick{y} \\
-      &\targ    &\qw & &       &&&     &\targ    &\qw      &\qw  &&&   & & & \lstick{t} &\qw      &\qw  &\qw      &\qw &\qw      &\qw  &\qw &\targ     &\qw &\rstick{t \oplus (x \land y)} \\
-      &         &    & &       &&& \qO &\targ    &\qw      &\qw  &&&   & & & \qA        &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\ctrl{-1} &\qw &\rstick{x \land y} \\
+      &\ctrl{1} &\qw && &&&    &\qw &\qw &\qw      &\qw  &\ctrl{3} &\qw &\qw      &\qw  &\qw &\qw       &\qw &\qw &\qw      &\qw  &\ctrl{3} &\qw &\qw      &\qw  &\qw &\qw &&\\
+      &\ctrl{1} &\qw &&=&&&    &\qw &\qw &\ctrl{2} &\qw  &\qw      &\qw &\ctrl{2} &\qw  &\qw &\qw       &\qw &\qw &\ctrl{2} &\qw  &\qw      &\qw &\ctrl{2} &\qw  &\qw &\qw &&\\
+      &\targ    &\qw && &&&    &\qw &\qw &\qw      &\qw  &\qw      &\qw &\qw      &\qw  &\qw &\targ     &\qw &\qw &\qw      &\qw  &\qw      &\qw &\qw      &\qw  &\qw &\qw &&\\
+      &         &    && &&&\qO &\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\ctrl{-1} &\qH &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\qw 
+          \gategroup{4}{6}{4}{10}{.7em}{--} \gategroup{4}{26}{4}{30}{.7em}{--} &|0\rangle & \\
+      &         &    && &&&    &    |A\rangle &  & &     &         &    &         &     &    &          &    &    &         &    &         &     &         &     & |A\rangle
     }
   }
   \caption{
-	Our temporary Toffoli construction, which uses an $|A\rangle$ ancilla and 3 T gates.
-	The $|A\rangle$ state is recovered when uncomputing the temporary Toffoli.
+	Performing a Toffoli indirectly, by applying a pair of Toffolis to an ancilla and using the intermediate value to control a CNOT onto the actual target, appears to have a T-cost of 8.
+	However, the initial T gate is being used to compute an $|A\rangle$ state and the final T gate is being used to uncompute the $|A\rangle$ state.
+    \\	
+	Instead of spending $|A\rangle$ states to perform T gates to make and unmake $|A\rangle$ states, we pass in and later recover a single $|A\rangle$ state.
+	This ``investment" reduces the net T-cost to 6.
   }
-  \label{fig:ancilla-temporary-toffoli}
+  \label{fig:indirect-toffoli}
 \end{figure}
 
+A Toffoli with T-cost of 6 isn't optimal, but the reduction from the textbook T-cost of 7 was done in an unexpected way.
+There were likely other situations where this optimization would improve on the state of the art, and we soon found one: temporary Toffolis.
+When a Toffoli is going to be uncomputed, it is not necessary to compute, uncompute, recompute, and reuncompute the ancilla qubit.
+Instead, compute the ancilla for the first Toffoli, keep the ancilla around to make performing the second Toffoli easy, then uncompute the ancilla.
+Separating the control-merging step from the control-unmerging step improves the T-cost of temporary Toffolis from 8 to 6.
+
+[[[[Keeping ancilla around is counter-intuitive, because the ancilla represents entangled garbage that can prevent interference from occurring correctly.
+It just so happens that it makes sense to do so for uncomputation tasks related to classical functions.]]]]
+
+
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=1.5em @C=0.7em {
-      &x  &&\ctrl{1} &\qw &x && && \qw  &\qw &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw &           \\
-      &y  &&\ctrl{1} &\qw &y &&=&& \qw  &\qw &\qw      &\qw &\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw &           \\
-      &xy &&\qw      &    &  && && \qSi &\qH &\targ    &\qT &\targ    &\qTi &\targ    &\qT &\targ    &\qw &|A \rangle \\
+      &\ctrl{1}&\qw &\qw &\qw    &\qw &\qw &\ctrl{1}&\qw && &&&    &\qw     &\qw  &\ctrl{3}&\qw &\qw     &\qw  &\qw &\qw      &\qw &\qw &\qw    &\qw &\qw &\qw      &\qw &\qw &\qw     &\qw  &\ctrl{3}&\qw &\qw     &\qw &&\\
+      &\ctrl{1}&\qw &\qw &\qw    &\qw &\qw &\ctrl{1}&\qw &&=&&&    &\ctrl{2}&\qw  &\qw     &\qw &\ctrl{2}&\qw  &\qw &\qw      &\qw &\qw &\qw    &\qw &\qw &\qw      &\qw &\qw &\ctrl{2}&\qw  &\qw     &\qw &\ctrl{2}&\qw &&\\
+      &\targ   &\qw &    &\ldots &    &    &\targ   &\qw && &&&    &\qw     &\qw  &\qw     &\qw &\qw     &\qw  &\qw &\targ    &\qw &    &\ldots &    &    &\targ    &\qw &\qw &\qw     &\qw  &\qw     &\qw &\qw     &\qw &&\\
+      &        &    &    &       &    &    &        &    && &&&\qA &\targ   &\qTi &\targ   &\qT &\targ   &\qTi &\qH &\ctrl{-1}&\qw &\qw &\qw    &\qw &\qw &\ctrl{-1}&\qH &\qT &\targ   &\qTi &\targ   &\qT &\targ   &\qw &|A\rangle &\\
     }
   }
   \caption{
-	A non-optimal unmerging circuit that uses three $T$ gates, but recovers an $|A\rangle$ state.
-	Avoids measurement, but has a net T-cost of two (which is worse than \autoref{fig:unmerge-free}'s T-cost of zero).
+	A temporary Toffoli construction with a net T-cost of 6.
+	Invests an $|A\rangle$ state when computing the Toffoli, holds an ancilla qubit storing the logical-and of the controls until it's time to uncompute the Toffoli, then recovers the $|A\rangle$ state.
   }
-  \label{fig:unmerge-recover-a}
+  \label{fig:ancilla-temporary-toffoli}
 \end{figure}
 
 
@@ -239,9 +265,9 @@ This construction defines our logical AND operation, which we draw as a wire eme
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=1.5em @C=0.7em {
-      &x &&\ctrl{1} &\qw & x  && &&          &&\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw &\qw &\\
-      &y &&\ctrl{1} &\qw & y  &&=&&          &&\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\qw      &\qw &\qw &\qw &\\
-      &  &&         &\qw & xy && &&|A\rangle &&\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\targ    &\qH &\qS &\qw &\\
+      &x &&\ctrl{1} &\qw & x  && &&          &&\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\qw &\qw &\qw &\\
+      &y &&\ctrl{1} &\qw & y  &&=&&          &&\ctrl{1} &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\qw &\qw &\qw &\\
+      &  &&         &\qw & xy && &&|A\rangle &&\targ    &\qTi &\targ    &\qT &\targ    &\qTi &\qH &\qS &\qw &\\
     }
   }
   \caption{
