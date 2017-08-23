@@ -366,73 +366,135 @@ It occurs during uncomputation, and also in circuits that sweep back and forth a
 \section{T-optimized Circuit Constructions}
 \label{sec:circuit-constructions}
 
+In this section we will show how to apply temporary Toffolis to improve the complexity of several circuits.
+
+First, we note that existing adder constructions contain temporary Toffolis.
+The T-cost of adding two $n$-bit numbers was thought to be $8n + O(1)$.
+We replace the basic adder unit with the building block shown in \ref{fig:full-adder-block}, putting it together as shown in \ref{fig:multi-bit-adder-example} in order to create an adder with a T-cost of $4n + O(1)$.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=1.5em @C=0.7em {
-      &x_k &&\targ    &\ctrl{1}&\qw      &\qw &\qw &\qw &\qw     &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw     &\qw &\qw &\qw      &\ctrl{1}&\targ    &\ctrl{1}&\qw &x_k     &&&&& \\
-      &y_k &&\targ    &\ctrl{1}&\qw      &\qw &\qw &\qw &\qw     &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw     &\qw &\qw &\qw      &\ctrl{1}&\qw      &\targ   &\qw &&&(x+y)_k &&& \\
-      &    &&         &        &\ctrl{1} &\qw &\qw &\qw &\qw     &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw     &\qw &\qw &\ctrl{1} &\qw     &         &        &    &&&        &&& \\
-      &c_k &&\ctrl{-3}&\qw     &\targ    &\qw &\qw &    &c_{k+1} &    &    &    &\ldots &    &    &    &c_{k+1} &    &    &\targ    &\qw     &\ctrl{-3}&\qw     &\qw &c_k     &&&&& \\
+      &c_k &&\ctrl{2}&\qw     &\ctrl{3}&\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\ctrl{3}&\qw     &\ctrl{1}&\qw     &\qw &c_k     &&&&& \\
+      &i_k &&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\targ   &\ctrl{1}&\qw &i_k     &&&&& \\
+      &t_k &&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\qw     &\targ   &\qw &&&(t+i)_k &&& \\
+      &    &&        &        &\targ   &\qw &    &c_{k+1}&    &    &    &\ldots &    &    &    &c_{k+1}&    &    &\targ   &\qw     &        &        &    &&&        &&& \\
     }
   }
   \caption{
-	Inline full adder block with a T-cost of 4.
+	Adder building block with a T-cost of 4.
   }
-  \label{fig:addition}
+  \label{fig:full-adder-block}
 \end{figure}
 
+\begin{figure}
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &i_0 &&\ctrl{1} &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\ctrl{1}&\qw &i_0     &&&&&\\
+      &t_0 &&\ctrl{1} &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw &&&(t+i)_0 &&&\\
+      &    &&         &\ctrl{2}&\qw     &\ctrl{3}&\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{3}&\qw     &\ctrl{1}&\qw     &        &    &&&        &&&\\
+      &i_1 &&\qw      &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw     &\ctrl{1}&\qw &i_1     &&&&&\\
+      &t_1 &&\qw      &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw     &\qw     &\targ   &\qw &&&(t+i)_1 &&&\\
+      &    &&         &        &        &\targ   &\qw &\ctrl{2}&\qw     &\ctrl{3}&\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{3}&\qw     &\ctrl{1}&\targ   &\qw     &        &        &        &    &&&        &&&\\
+      &i_2 &&\qw      &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw &i_2     &&&&&\\
+      &t_2 &&\qw      &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\qw &&&(t+i)_2 &&&\\
+      &    &&         &        &        &        &    &        &        &\targ   &\qw &\ctrl{2}&\qw     &\ctrl{3}&\qw     &\ctrl{3}&\qw     &\ctrl{1}&\targ   &\qw     &        &        &        &        &        &        &    &&&        &&&\\
+      &i_3 &&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw &i_3     &&&&&\\
+      &t_3 &&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw     &\qw     &\ctrl{1}&\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\qw &&&(t+i)_3 &&&\\
+      &    &&         &        &        &        &    &        &        &        &    &        &        &\targ   &\ctrl{2}&\targ   &\qw     &        &        &        &        &        &        &        &        &        &    &&&        &&&\\
+      &i_4 &&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw &i_4     &&&&&\\
+      &t_4 &&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\targ   &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\qw &&&(t+i)_4 &&&\\
+    }
+  }
+  \caption{
+	5-bit adder with T-cost of 16.
+	General $n$-bit adder has T-cost of $4n - 4$.
+  }
+  \label{fig:multi-bit-adder-example}
+\end{figure}
+
+We also note how to transform our adder into a controlled adder by controlling one of the operations.
+The cost of this controlled adder is $8n + O(1)$; a significant improvement over a recently proposed construction with a T-cost of $21n + O(1)$.
+
+
+\begin{figure}
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &\text{control} &&&&\qw     &\qw     &\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\qw     &\ctrl{2}&\qw     &\qw &\\
+      &&c_k            &&&\ctrl{2}&\qw     &\ctrl{3}&\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\ctrl{3}&\qw     &\qw     &\ctrl{2}&\qw &\\
+      &&i_k            &&&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\ctrl{1}&\targ   &\qw &\\
+      &&t_k            &&&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\targ   &\targ   &\qw &\\
+      &               &&&&        &        &\targ   &\qw &    &c_{k+1}&    &    &    &\ldots &    &    &    &c_{k+1}&    &    &\targ   &\qw     &        &        &    &\\
+    }
+  }
+  \caption{
+	Controlled full adder block with a T-cost of 8.
+  }
+  \label{fig:controlled-full-adder-block}
+\end{figure}
 
 
 
 
 \begin{figure}
   \centering
-  \makebox[\linewidth]{
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &\text{control} &&&&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\ctrl{13}&\qw     &\qw     &\qw     &\ctrl{10}&\qw     &\qw     &\ctrl{7}&\qw     &\qw     &\qw     &\ctrl{4}&\qw     &\qw     &\ctrl{1}&\qw &&&\text{control}               &&&&&&\\
+      &&i_0            &&&\ctrl{1} &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\ctrl{1}&\qw &i_0                          &&&&&&&&\\
+      &&t_0            &&&\ctrl{1} &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw &&&&&&(t+i \cdot \text{control})_0 &&&\\
+      &&               &&&         &\ctrl{2}&\qw     &\ctrl{3}&\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw     &\ctrl{3}&\qw     &\qw     &\ctrl{2}&\qw     &        &    &&&                             &&&&&&\\
+      &&i_1            &&&\qw      &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\ctrl{1}&\targ   &\qw     &\qw     &\qw &i_1                          &&&&&&&&\\
+      &&t_1            &&&\qw      &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\targ   &\qw     &\qw     &\qw &&&&&&(t+i \cdot \text{control})_1 &&&\\
+      &&               &&&         &        &        &\targ   &\qw &\ctrl{2}&\qw     &\ctrl{3}&\qw &\qw     &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw      &\ctrl{3}&\qw     &\qw     &\ctrl{2}&\targ   &\qw     &        &        &        &        &    &&&                             &&&&&&\\
+      &&i_2            &&&\qw      &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw      &\qw     &\ctrl{1}&\ctrl{1}&\targ   &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw &i_2                          &&&&&&&&\\
+      &&t_2            &&&\qw      &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw      &\qw     &\ctrl{1}&\targ   &\targ   &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw &&&&&&(t+i \cdot \text{control})_2 &&&\\
+      &&               &&&         &        &        &        &    &        &        &\targ   &\qw &\ctrl{2}&\qw     &\ctrl{3}&\qw     &\qw      &\qw     &\ctrl{3}&\qw     &\qw      &\ctrl{2}&\qw     &        &        &        &        &        &        &        &        &    &&&                             &&&&&&\\
+      &&i_3            &&&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw     &\qw      &\qw     &\qw     &\ctrl{1}&\ctrl{1} &\targ   &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw &i_3                          &&&&&&&&\\
+      &&t_3            &&&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw     &\qw      &\qw     &\qw     &\ctrl{1}&\targ    &\targ   &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw &&&&&&(t+i \cdot \text{control})_3 &&&\\
+      &&               &&&         &        &        &        &    &        &        &        &    &        &        &\targ   &\ctrl{1}&\qw      &\ctrl{1}&\targ   &\qw     &         &        &        &        &        &        &        &        &        &        &        &    &&&                             &&&&&&\\
+      &&i_4            &&&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\targ   &\ctrl{1} &\targ   &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw &i_4                          &&&&&&&&\\
+      &&t_4            &&&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\targ    &\qw     &\qw     &\qw     &\qw      &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw &&&&&&(t+i \cdot \text{control})_4 &&&\\
+    }
   }
   \caption{
-	$n$-bit inline addition with T-cost of $8n + O(1)$ based on [[[cite]]].
-  }
-  \label{fig:inline-addition}
-\end{figure}
-
-
-\begin{figure}
-  \centering
-  \makebox[\linewidth]{
-  }
-  \caption{
-	$n$-bit addition with T-cost of $6n + O(1)$.
+	5-bit controlled adder with a T-cost of 36.
+	General $n$-bit controlled adder has T-cost of $8n - 4$.
   }
   \label{fig:ancilla-addition}
 \end{figure}
 
-\begin{figure}
-  \resizebox{\linewidth}{!}{
-    \Qcircuit @R=1.5em @C=0.7em {
-      &    &\ctrl{2}          &\qw               &\qw &&     &&&     &\qS      &\qS      &\gate{Z}     &\ctrl{2}          &\qw               &\qw &&& &&& \lstick{x} &\ctrl{2} &\qw      &\qw &\ctrl{3} &\qw  &\qw      &\qw &\qw      &\qw  &\qw      &\qw &\rstick{x}         \\
-      &    &\qw               &\ctrl{1}          &\qw &&\cong&&&     &\ctrl{-1}&\qS \qwx &\gate{Z}\qwx &\qw               &\ctrl{1}          &\qw &&&=&&& \lstick{y} &\qw      &\qw      &\qw &\qw      &\qw  &\ctrl{2} &\qw &\qw      &\qw  &\ctrl{1} &\qw &\rstick{y}         \\
-      &    &\multigate{1}{+1} &\multigate{1}{+1} &\qw &&     &&&     &\qw      &\ctrl{-1}&\qw          &\multigate{1}{+1} &\multigate{1}{+1} &\qw &&& &&& \lstick{z} &\targ    &\ctrl{1} &\qw &\qw      &\qw  &\qw      &\qw &\ctrl{1} &\qw  &\targ    &\qw &\rstick{(x+y+z)_0} \\
-      &\qO &\ghost{+1}        &\ghost{+1}        &\qw &&     &&& \qO &\qw      &\qw      &\ctrl{-2}    &\ghost{+1}        &\ghost{+1}        &\qw &&& &&& \qA        &\qw      &\targ    &\qT &\targ    &\qSi &\targ    &\qT &\targ    &\qTi &\qH      &\qw &\rstick{(x+y+z)_1} \\
-    }
-  }
-  \caption{
-	Temporary full adder.
-  }
-  \label{fig:temporary-ancilla-addition}
-\end{figure}
+Other examples of operations which benefit from this optimization include:
 
-Mention binary to unary as an example?
+- Integer comparisons.
+
+- Integer multiplication.
+
+- Incrementing and counting.
+
+- Modular exponentiation.
+
+- Expanding a binary register into a unary register.
+
+- Operations with a target qubit indexed by a binary qubit register.
+
+- Phasing a register by a computable function $f$ of its value (i.e. applying the operation $U_f = \exp\left( i \sum_k f(k) |k\rangle \langle k| \right)$).
+
+- Temporary permutations.
+
+- Oracles in Grover's algorithm.
+
+- Aggregate synthesis of rotations.
 
 
-Show example doing an $n$-control NOT with $6n + O(1)$ or $3n + O(1)$ if temporary.
+\section{Conclusion}
+\label{sec:conclusion}
 
-Mention that this trick works more generally. Anytime you have an ancilla that starts HT and ends Tdag H.
-
+Conclude.
 
 \section{Acknowledgements}
 
-Austin.
+Austin [reference finding, idea bouncing, review].
 
 
 \bibliographystyle{plain}
@@ -461,37 +523,5 @@ https://arxiv.org/pdf/1706.05113.pdf   has a ctrl-add with 21N + O(1). This tech
 
 https://pdfs.semanticscholar.org/8b84/d1bc2928922937a16205f9d8c925ff76689b.pdf     has a pretty good ripple carry
 
-
-
-
-
-
-
-
-As an example, suppose we wish to phase the amplitude of each computational basis state $|k\rangle$ of some register $R_{\text{in}}$ by a number of radians computed by some function $f(k)$.
-We want to apply the operation $U_f = \exp\left( i \sum_k f(k) |k\rangle \langle k| \right)$.
-A naive method to perform this task is to 1) construct a classical reversible circuit $C$ for approximating $f$, 2) decompose the gates used by $C$ into a quantum gate set so that the circuit can be run on a quantum computer, 3) prepare a fresh register $R_\text{out}$ and use the circuit $C$ on it and $R_\text{in}$ to produce a binary fixed-point 2s-complement output stored in $R_{\text{out}}$, and then 4) phase by an amount proportional to $R_\text{out}$ by applying a $Z^{\theta 2^r}$ operation with appropriate scaling factor $\theta$ to each bit position $r$ within $R_\text{out}$.
-
-The problem with this naive method is that it produces garbage.
-The register $R_\text{out}$ ends up entangled with $R_\text{in}$.
-If the garbage isn't cleaned up, this decoheres $R_\text{in}$; defeating the purpose of using a quantum computer.
-The method we use to clean up the garbage is to uncompute $R_\text{out}$ by running $C$ in reverse.
-This destroys the garbage, without undoing the phasing effects.
-See \autoref{fig:phase-by-function}.
-
-\begin{figure}
-  \resizebox{\linewidth}{!}{
-    \Qcircuit @R=2.0em @C=0.7em {
-      &\gate{\exp \big(i \sum_k f(k)|k\rangle\langle k|\big)}&\qw &&=&&&                      &&&\qw &\gate{\text{input k}}         &\qw               &\gate{\text{input k}}         &\qw &\\
-      &                                                      &    && &&&|0\rangle^{\otimes p} &&&\qw &\gate{0 \rightarrow \left\lfloor \frac{f(k)}{2^{p+1} \pi} \right\rfloor \pmod{2^p}}\qwx &\gate{\text{Grad}^{2^{-p}}}&\gate{\left\lfloor \frac{f(k)}{2^{p+1} \pi} \right\rfloor \pmod{2^p} \rightarrow 0}\qwx &\qw &\\
-    }
-  }
-  \caption{
-	Example use of uncomputation: phasing by any computable function $f$, up to a precision of $\epsilon = 2 \pi / 2^p$ radians, by computing an approximation of $f$ under superposition then applying a phase gradient to the output before uncomputing it.
-    \\
-	The gradient operation is implemented by a column of Z-axis rotations, one for each of the $p$ qubits in the temporary output register (the Z rotation applied to the $b$'th qubit is the gate $Z^{2^{-b}}$).
-  }
-  \label{fig:phase-by-function}
-\end{figure}
 
 \end{document}
