@@ -413,6 +413,21 @@ We replace the basic adder unit with the building block shown in \ref{fig:full-a
   \label{fig:multi-bit-adder-example}
 \end{figure}
 
+\begin{figure}
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=1.5em @C=0.7em {
+      &c_k &&\ctrl{2}&\qw     &\ctrl{3}&\qw     &\qw &&c_k     &&& \\
+      &i_k &&\targ   &\ctrl{1}&\qw     &\ctrl{1}&\qw &&i_k     &&& \\
+      &t_k &&\targ   &\ctrl{1}&\qw     &\targ   &\qw &&&(t+i)_k && \\
+      &    &&        &        &\targ   &\qw     &\qw &&c_{k+1} &&& \\
+    }
+  }
+  \caption{
+	  Temporary addition building block with a T-cost of 4 to compute and a T-cost of 0 to uncompute (not shown).
+  }
+  \label{fig:temporary-full-adder-block}
+\end{figure}
+
 We also note how to transform our adder into a controlled adder by controlling one of the operations.
 The cost of this controlled adder is $8n + O(1)$; a significant improvement over a recently proposed construction with a T-cost of $21n + O(1)$.
 
@@ -472,11 +487,11 @@ Other examples of operations which benefit from this optimization include:
 
 - Incrementing and counting.
 
-- Modular exponentiation.
-
-- Expanding a binary register into a unary register.
+- Modular arithmetic.
 
 - Operations with a target qubit indexed by a binary qubit register.
+
+- Expanding a binary register into a unary register.
 
 - Phasing a register by a computable function $f$ of its value (i.e. applying the operation $U_f = \exp\left( i \sum_k f(k) |k\rangle \langle k| \right)$).
 
@@ -484,7 +499,7 @@ Other examples of operations which benefit from this optimization include:
 
 - Oracles in Grover's algorithm.
 
-- Aggregate synthesis of rotations.
+- etc
 
 
 \section{Conclusion}
