@@ -33,7 +33,7 @@ Temporary AND gates are a generally useful tool when optimizing T-cost.
 They can be applied to integer arithmetic, modular arithmetic, rotation synthesis, the quantum Fourier transform, Shor's algorithm, Grover oracles, and many other circuits.
 Because T gates dominate the cost of quantum computation based on the surface code, and the temporary AND gate is widely applicable, our constructions represent a significant reduction in projected costs of quantum computation.
 
-In addition to our $n$-bit adder circuit with T-cost of $4n-4$, we construct an $n$-bit controlled adder circuit with T-cost of $8n-4$, a temporary adder circuit that can be computed for the same cost as the normal adder but whose result can be kept until later uncomputed at no T-cost, a phase gradient circuit with T-cost of $4n + O(b \lg n)$ where $b = \lg \frac{1}{\epsilon}$ is the desired bit-precision of the operation, a quantum Fourier transform circuit with T-cost of $8 n \lg b + O(b (\lg n) (\lg b))$, and a circuit to rotate $n$ qubits by any angle $\theta$ with T-cost of $4n + O(b \lg n)$.
+In addition to our $n$-bit adder circuit with T-cost of $4n + O(1)$, we show how to construct an $n$-bit controlled adder circuit with T-cost of $8n + O(1)$, and a temporary adder that can be computed for the same cost as the normal adder but whose result can be kept until later uncomputed at no T-cost.
 \end{abstract}
 
 
@@ -351,7 +351,7 @@ We simply perform the temporary Toffoli gates with our temporary AND gate constr
     }
   }
   \caption{
-	Adder building block with a T-cost of 4.
+	Building block, for an adder, with a T-cost of 4.
 	Equivalent to the building block of the Cuccaro adder \cite{Cuccaro2004}, but using our temporary AND gate construction.
   }
   \label{fig:full-adder-block}
@@ -412,15 +412,15 @@ We use our temporary AND gate construction to improve this to $8n + O(1)$, and s
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=0.7em @C=0.7em {
-      &\text{control} &&&&\qw     &\qw     &\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\qw     &\ctrl{2}&\qw     &\qw &\\
-      &&c_k            &&&\ctrl{2}&\qw     &\ctrl{3}&\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\ctrl{3}&\qw     &\qw     &\ctrl{2}&\qw &\\
-      &&i_k            &&&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\ctrl{1}&\targ   &\qw &\\
-      &&t_k            &&&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\targ   &\targ   &\qw &\\
-      &               &&&&        &        &\targ   &\qw &    &c_{k+1}&    &    &    &\ldots &    &    &    &c_{k+1}&    &    &\targ   &\qw     &        &        &    &\\
+      &\text{control} &&&&\qw     &\qw     &\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\qw     &\ctrl{2}&\qw     &\qw &&&\text{control}               &&&&&&\\
+      &&c_k            &&&\ctrl{2}&\qw     &\ctrl{3}&\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\ctrl{3}&\qw     &\qw     &\ctrl{2}&\qw &c_k                          &&&&&&&&\\
+      &&i_k            &&&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\ctrl{1}&\targ   &\qw &i_k                          &&&&&&&&\\
+      &&t_k            &&&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\targ   &\targ   &\qw &&&&&(t+i \cdot \text{control})_k &&&&&\\
+      &               &&&&        &        &\targ   &\qw &    &c_{k+1}&    &    &    &\ldots &    &    &    &c_{k+1}&    &    &\targ   &\qw     &        &        &    &    &&&&&&&&\\
     }
   }
   \caption{
-	Controlled full adder block with a T-cost of 8.
+	Building block, for a controlled adder, with a T-cost of 8.
   }
   \label{fig:controlled-full-adder-block}
 \end{figure}
