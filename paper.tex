@@ -15,7 +15,7 @@
 \newcommand{\qA}{\lstick{|A\rangle}}
 \newcommand{\qO}{\lstick{|0\rangle}}
 
-\title{T gates, temporary ANDs, and halving the cost of quantum addition}
+\title{Halving the cost of quantum addition}
 \author{Craig Gidney}
 \affiliation{Google, Santa Barbara, CA 93117, USA}
 \email{craiggidney@google.com}
@@ -27,13 +27,13 @@
 
 \begin{abstract}
 We improve the number of T gates needed to perform an $n$-bit adder from $8n + O(1)$ \cite{Cuccaro2004, Amy2013, AustinDiscussionsAndEmails2017} to $4n + O(1)$.
-We do so via a ``temporary AND gate" construction, which uses four T gates to store the logical-and of two qubits into an ancilla and zero T gates to later erase the ancilla.
+We do so via a ``temporary AND gate" construction, which uses four T gates to store the logical-AND of two qubits into an ancilla and zero T gates to later erase the ancilla.
 
-Temporary AND gates are a generally useful tool when optimizing T-cost.
+Temporary AND gates are a generally useful tool when optimizing T-count.
 They can be applied to integer arithmetic, modular arithmetic, rotation synthesis, the quantum Fourier transform, Shor's algorithm, Grover oracles, and many other circuits.
 Because T gates dominate the cost of quantum computation based on the surface code, and the temporary AND gate is widely applicable, our constructions represent a significant reduction in projected costs of quantum computation.
 
-In addition to our $n$-bit adder circuit with T-cost of $4n + O(1)$, we show how to construct an $n$-bit controlled adder circuit with T-cost of $8n + O(1)$, and a temporary adder that can be computed for the same cost as the normal adder but whose result can be kept until later uncomputed at no T-cost.
+In addition to our $n$-bit adder circuit with T-count of $4n + O(1)$, we show how to construct an $n$-bit controlled adder circuit with T-count of $8n + O(1)$, and a temporary adder that can be computed for the same cost as the normal adder but whose result can be kept until later uncomputed at no T-count.
 \end{abstract}
 
 
@@ -56,9 +56,9 @@ We refer to initializing the ancilla as ``computing the logical-AND of the contr
 Our paper is divided into six sections.
 In \autoref{sec:introduction}, we motivate the problem and introduce terminology.
 \autoref{sec:review} discusses how previous work on optimizing T gate counts improved the cost of matched pairs of Toffolis from 14 to 8.
-In \autoref{sec:invest}, we show how to improve the T-cost from 8 to 6 by investing and later recovering an $|A\rangle$ state instead of consuming it to perform T gates.
-\autoref{sec:temporary-and} expands on those ideas with an ancilla erasing trick that improves the T-cost from 6 to 4.
-This leads to \autoref{sec:circuit-constructions}, where we demonstrate how to use our constructions to create low T-cost circuits for several addition tasks and discuss other possible applications of our constructions.
+In \autoref{sec:invest}, we show how to improve the T-count from 8 to 6 by investing and later recovering an $|A\rangle$ state instead of consuming it to perform T gates.
+\autoref{sec:temporary-and} expands on those ideas with an ancilla erasing trick that improves the T-count from 6 to 4.
+This leads to \autoref{sec:circuit-constructions}, where we demonstrate how to use our constructions to create low T-count circuits for several addition tasks and discuss other possible applications of our constructions.
 Finally, \autoref{sec:conclusion} summarizes our contributions, and proves that at least two T gates are needed to perform a temporary AND.
 
 
@@ -98,8 +98,8 @@ For example, when several adjacent Toffoli gates share the same controls, all bu
     }
   }
   \caption{
-	The T-cost of $N$ adjacent Toffolis sharing the same controls is $0 \cdot N + O(1)$.
-	The marginal T-cost is 0 because each additional Toffoli can be replaced with CNOTs framing a root Toffoli.
+	The T-count of $N$ adjacent Toffolis sharing the same controls is $0 \cdot N + O(1)$.
+	The marginal T-count is 0 because each additional Toffoli can be replaced with CNOTs framing a root Toffoli.
   }
   \label{fig:shared-controls}
 \end{figure}
@@ -117,7 +117,7 @@ This introduces phase errors (see \autoref{fig:bad-phase-toffoli}), but the seco
     }
   }
   \caption{
-	Starting with \autoref{fig:textbook-toffoli} then dropping T gates on the controls produces an operation with a T-cost of 4 that performs the correct permutation.
+	Starting with \autoref{fig:textbook-toffoli} then dropping T gates on the controls produces an operation with a T-count of 4 that performs the correct permutation.
 	However, the operation introduces phase errors.
   }
   \label{fig:bad-phase-toffoli}
@@ -133,17 +133,16 @@ This introduces phase errors (see \autoref{fig:bad-phase-toffoli}), but the seco
   }
   \caption{
 	When two Toffolis form a compute/uncompute pair, they can cancel each others' phase errors.
-	Fixes the problem with the construction in \autoref{fig:bad-phase-toffoli}, and achieves a per-Toffoli T-cost of 4 for paired Toffolis \cite{Barenco1995}.
+	Fixes the problem with the construction in \autoref{fig:bad-phase-toffoli}, and achieves a per-Toffoli T-count of 4 for paired Toffolis \cite{Barenco1995}.
   }
   \label{fig:cancelled-bad-phase-toffoli}
 \end{figure}
 
-A typical $n$-bit quantum adder will contain $2n + O(1)$ Toffoli gates, implying a naive T-cost of $14n + O(1)$.
+A typical $n$-bit quantum adder will contain $2n + O(1)$ Toffoli gates, implying a naive T-count of $14n + O(1)$.
 However, almost all of the Toffoli gates in the first half of an adder are uncomputed by Toffoli gates in the second half.
-This allows the T gates on the controls of the Toffoli gates to be omitted, reducing their T-cost from 7 to 4 and the T-cost of addition to $8n + O(1)$.
+This allows the T gates on the controls of the Toffoli gates to be omitted, reducing their T-count from 7 to 4 and the T-count of addition to $8n + O(1)$.
 
-Even if a Toffoli isn't paired with a second Toffoli that uncomputes its effects, it's still possible to perform the Toffoli with T-cost of by using an ancilla, a measurement, and a conditional fixup operation \cite{Jones2013} (see \autoref{fig:jones-toffoli}).
-Our key improvement over \cite{Jones2013} is to notice that the ancilla's lifetime can be extended, so it can be used both when computing and uncomputing a Toffoli.
+Even if a Toffoli isn't paired with a second Toffoli that uncomputes its effects, it is still possible to perform the Toffoli with T-count of 4 by using an ancilla, a measurement, and a conditional fixup operation \cite{Jones2013} (see \autoref{fig:jones-toffoli}).
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
@@ -155,23 +154,23 @@ Our key improvement over \cite{Jones2013} is to notice that the ancilla's lifeti
     }
   }
   \caption{
-	Toffoli construction with T-cost of 4 from \cite{Jones2013}.
+	Toffoli construction with T-count of 4 from \cite{Jones2013}.
   }
   \label{fig:jones-toffoli}
 \end{figure}
 
 
-\section{Warm up: Investing $|A\rangle$ states}
+\section{Warm up: Reusing $|A\rangle$ states}
 \label{sec:invest}
 
-This paper started with an idea that improved the T-cost of a single Toffoli gate from 7 to 6 in a surprising way, by performing the Toffoli indirectly instead of directly.
-We started with a clean ancilla in the $|0\rangle$ state, applied a Toffoli to store the logical-and of the two controls in the ancilla, used the ancilla to control a CNOT onto the intended target, then uncomputed the ancilla.
+This paper started with an idea that improved the T-count of a single Toffoli gate from 7 to 6 in a surprising way, by performing the Toffoli indirectly instead of directly.
+We started with a clean ancilla in the $|0\rangle$ state, applied a Toffoli to store the logical-AND of the two controls in the ancilla, used the ancilla to control a CNOT onto the intended target, then uncomputed the ancilla.
 
-Initially, this indirect-Toffoli construction appears to have a T-cost of 8.
+Initially, this indirect-Toffoli construction appears to have a T-count of 8.
 However, as shown in \autoref{fig:indirect-toffoli}, the last T gate in the circuit is unnecessary.
 In fact, it is actively harmful.
-Dropping this T gate and the following Hadamard not only reduces the T-cost from 8 to 7, it leaves the ancilla in an $|A\rangle$ state that can be consumed to perform a T gate elsewhere.
-This improves the net T-cost to 6.
+Dropping this T gate and the following Hadamard not only reduces the T-count from 8 to 7, it leaves the ancilla in an $|A\rangle$ state that can be consumed to perform a T gate elsewhere.
+This improves the net T-count to 6.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
@@ -185,18 +184,18 @@ This improves the net T-cost to 6.
     }
   }
   \caption{
-	Performing a Toffoli indirectly, by applying a pair of Toffolis to an ancilla and using the intermediate value to control a CNOT onto the actual target, appears to have a T-cost of 8.
+	Performing a Toffoli indirectly, by applying a pair of Toffolis to an ancilla and using the intermediate value to control a CNOT onto the actual target, appears to have a T-count of 8.
 	However, the initial T gate is being used to compute an $|A\rangle$ state and the final T gate is being used to uncompute the $|A\rangle$ state.
     Instead of spending $|A\rangle$ states to perform T gates to make and unmake $|A\rangle$ states, we pass in and later recover a single $|A\rangle$ state.
-	This ``investment" reduces the net T-cost to 6.
+	This ``investment" reduces the net T-count to 6.
   }
   \label{fig:indirect-toffoli}
 \end{figure}
 
-A Toffoli with a T-cost of 6 isn't optimal, but the reduction from 7 was done in an unexpected way.
+A Toffoli with a T-count of 6 isn't optimal, but the reduction from 7 was done in an unexpected way.
 While searching for other circuits where this optimization might apply, we realized it would be useful when an initial Toffoli was later uncomputed by a second Toffoli.
 Instead of computing and uncomputing the ancilla for the first Toffoli, then recomputing and re-uncomputing the ancilla for the second Toffoli, we simply kept the ancilla around until it was time to uncompute the Toffoli.
-This halved the T-cost of the pair from 12 to 6.
+This halved the T-count of the pair from 12 to 6.
 See \autoref{fig:ancilla-temporary-toffoli}.
 
 \begin{figure}
@@ -209,15 +208,15 @@ See \autoref{fig:ancilla-temporary-toffoli}.
     }
   }
   \caption{
-	Computing and uncomputing a Toffoli gate with a net T-cost of 6.
-	Invests an $|A\rangle$ state when computing the Toffoli, holds an ancilla qubit storing the logical-and of the controls until it's time to uncompute the Toffoli, then recovers the $|A\rangle$ state.
+	Computing and uncomputing a Toffoli gate with a net T-count of 6.
+	Invests an $|A\rangle$ state when computing the Toffoli, holds an ancilla qubit storing the logical-AND of the controls until it is time to uncompute the Toffoli, then recovers the $|A\rangle$ state.
   }
   \label{fig:ancilla-temporary-toffoli}
 \end{figure}
 
 Many circuits involve computing and later uncomputing a Toffoli (e.g. addition).
-Previously, it was believed that each Toffoli had a T-cost of 4 so the pair would have a T-cost of 8.
-Our $|A\rangle$-investing construction state reduces the T-cost of the pair from 8 to 6.
+Previously, it was believed that each Toffoli had a T-count of 4 so the pair would have a T-count of 8.
+Our $|A\rangle$-investing construction state reduces the T-count of the pair from 8 to 6.
 
 We further improve the cost of paired Toffoli gates in the next section, obsoleting the $|A\rangle$-investing construction we just explained.
 We covered it regardless, because we believe that investing and recovering $|A\rangle$ states is a useful optimization likely to apply more generally to other kinds of circuits.
@@ -250,16 +249,16 @@ We then hop the Hadamard over the Toffoli, transforming it into a CCZ operation.
 Next we re-arrange the CCZ so that the ancilla is one of the controls, which is possible because the controls and targets of a CCZ are interchangeable.
 Finally, we invoke the deferred measurement principle \cite{Nielsen2009} to hop the Measurement over the CCZ, turning the quantum control into a classical control.
 Ultimately, the Toffoli gate we started with has been turned into a CZ gate that we apply conditional on the result of measuring the ancilla.
-The final circuit uses only Clifford operations, which have no T-cost.
+The final circuit uses only Clifford operations, which have no T-count.
 
 With these three improvements applied, we are left with the key ingredients of our temporary AND gate.
 We can initialize an ancilla storing the logical-AND of two qubits.
-The creation process has a T-cost of 4.
+The creation process has a T-count of 4.
 Then we can keep the ancilla around, using it as a control for operations that would otherwise have been conditioned on both input qubits.
-Finally, once the ancilla is no longer needed, we can erase it at no T-cost.
+Finally, once the ancilla is no longer needed, we can erase it at no T-count.
 
-In diagrams, we draw the computation of the AND gate (i.e. the ancilla being initialized) as an ancilla wire emerging vertically from two controls then heading rightward (see \autoref{fig:compute-logical-and}).
-We draw the uncomputation analogously, with the ancilla wire coming in from the left then merging vertically into the two controls that created it (see \autoref{fig:erase-logical-and}).
+In diagrams, we draw the computation of the AND gate (i.e. the ancilla being initialized) as an ancilla wire emerging vertically from two controls then heading rightward (see \autoref{fig:compute-logical-AND}).
+We draw the uncomputation analogously, with the ancilla wire coming in from the left then merging vertically into the two controls that created it (see \autoref{fig:erase-logical-AND}).
 The initialized lifetime of the ancilla qubit corresponds to the wire coming out of and later merging into the control qubits.
 
 \begin{figure}
@@ -271,9 +270,9 @@ The initialized lifetime of the ancilla qubit corresponds to the wire coming out
     }
   }
   \caption{
-	Computing the logical-and of two qubits, with a T-cost of 4 and a T-depth of 1.
+	Computing the logical-AND of two qubits, with a T-count of 4 and a T-depth of 1.
   }
-  \label{fig:compute-logical-and}
+  \label{fig:compute-logical-AND}
 \end{figure}
 
 \begin{figure}
@@ -285,12 +284,12 @@ The initialized lifetime of the ancilla qubit corresponds to the wire coming out
     }
   }
   \caption{
-	Uncomputing the logical-and of two qubits, with a T-cost of 0.
+	Uncomputing the logical-AND of two qubits, with a T-count of 0.
   }
-  \label{fig:erase-logical-and}
+  \label{fig:erase-logical-AND}
 \end{figure}
 
-We can perform a single Toffoli by computing the logical-and of two qubits, applying a CNOT from the logical-and onto the actual target, then uncomputing the logical-and.
+We can perform a single Toffoli by computing the logical-AND of two qubits, applying a CNOT from the logical-AND onto the actual target, then uncomputing the logical-AND.
 This combined construction, shown in \autoref{fig:merge-use-erase-toffoli}, is equivalent to the one from \cite{Jones2013}.
 
 \begin{figure}
@@ -303,15 +302,15 @@ This combined construction, shown in \autoref{fig:merge-use-erase-toffoli}, is e
     }
   }
   \caption{
-	Performing a Toffoli gate by computing the logical-and of its controls, using the result, then erasing it.
-	Has a T-cost of 4 and a measure-react depth of 2.
+	Performing a Toffoli gate by computing the logical-AND of its controls, using the result, then erasing it.
+	Has a T-count of 4 and a measure-react depth of 2.
 	Equivalent to the construction from \cite{Jones2013} shown in \autoref{fig:jones-toffoli}.
   }
   \label{fig:merge-use-erase-toffoli}
 \end{figure}
 
 In hindsight, our improvement on the construction in \cite{Jones2013} is merely noticing that it can be split it useful pieces that don't all need to be applied at the same time.
-In particular, when a Toffoli is later uncomputed by a second Toffoli, simply delaying erasing the ancilla wire as shown in \autoref{fig:paired-toffoli-to-logical-and} reduces the T-cost of such paired Toffolis from 8 to 4.
+In particular, when a Toffoli is later uncomputed by a second Toffoli, simply delaying erasing the ancilla wire as shown in \autoref{fig:paired-toffoli-to-logical-AND} reduces the T-count of such paired Toffolis from 8 to 4.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
@@ -324,9 +323,9 @@ In particular, when a Toffoli is later uncomputed by a second Toffoli, simply de
   }
   \caption{
 	Replacing a pair of compute/uncompute Toffolis with a temporary AND gate and Clifford operations.
-	Improves the T-cost from 8 to 4.
+	Improves the T-count from 8 to 4.
   }
-  \label{fig:paired-toffoli-to-logical-and}
+  \label{fig:paired-toffoli-to-logical-AND}
 \end{figure}
 
 
@@ -351,7 +350,7 @@ We simply perform the temporary Toffoli gates with our temporary AND gate constr
     }
   }
   \caption{
-	Building block, for an adder, with a T-cost of 4.
+	Building block, for an adder, with a T-count of 4.
 	Equivalent to the building block of the Cuccaro adder \cite{Cuccaro2004}, but using our temporary AND gate construction.
   }
   \label{fig:full-adder-block}
@@ -377,17 +376,17 @@ We simply perform the temporary Toffoli gates with our temporary AND gate constr
     }
   }
   \caption{
-	A 5-bit adder with T-cost of 16.
-	The circuit contains Clifford operations, four logical-AND computations each with a T-cost of 4, and four logical-AND erasures with no T-cost.
-	Generalizes to an $n$-bit adder with a T-cost of $4n - 4$.
+	A 5-bit adder with T-count of 16.
+	The circuit contains Clifford operations, four logical-AND computations each with a T-count of 4, and four logical-AND erasures with no T-count.
+	Generalizes to an $n$-bit adder with a T-count of $4n - 4$.
   }
   \label{fig:multi-bit-adder-example}
 \end{figure}
 
 With a slight tweak to the adder building block, we can make the sum available for use as soon as the carry signal hits the high bit (instead of needing to wait for the uncomputation sweep to finish).
-This can halve the T-cost of the addition when it is going to be uncomputed.
+This can halve the T-count of the addition when it is going to be uncomputed.
 Instead of paying $4n + O(1)$ T gates to compute the addition, and then $4n + O(1)$ more T gates to uncompute the addition, we simply work with the intermediate state of a single addition computation.
-\autoref{fig:temporary-full-adder-block} shows the tweaked building block, which is also a temporary three-bit adder with T-cost 4.
+\autoref{fig:temporary-full-adder-block} shows the tweaked building block, which is also a temporary three-bit adder with T-count 4.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
@@ -399,14 +398,14 @@ Instead of paying $4n + O(1)$ T gates to compute the addition, and then $4n + O(
     }
   }
   \caption{
-	  A three-bit adder with T-cost 4 that can later be uncomputed for no T-cost.
+	  A three-bit adder with T-count 4 that can later be uncomputed for no T-count.
 	  A building-block for temporary addition circuits whose result will be used but then uncomputed.
   }
   \label{fig:temporary-full-adder-block}
 \end{figure}
 
 Some additions, such as the ones performed in Shor's algorithm, are conditioned on a control qubit.
-\cite{Coreas2017} derives a controlled-addition construction with T-cost of $21n + O(1)$.
+\cite{Coreas2017} derives a controlled-addition construction with T-count of $21n + O(1)$.
 We use our temporary AND gate construction to improve this to $8n + O(1)$, and show the building block in \autoref{fig:controlled-full-adder-block}.
 
 \begin{figure}
@@ -420,7 +419,7 @@ We use our temporary AND gate construction to improve this to $8n + O(1)$, and s
     }
   }
   \caption{
-	Building block, for a controlled adder, with a T-cost of 8.
+	Building block, for a controlled adder, with a T-count of 8.
   }
   \label{fig:controlled-full-adder-block}
 \end{figure}
@@ -429,7 +428,13 @@ The temporary AND gate is useful for more than just arithmetic.
 For example, temporary ANDs can be useful for applying phase rotations to many qubits simultaneously.
 Given a $b$-bit ancilla register $G$ prepared in the state $2^{-b/2} \sum_{k=0}^{2^b-1} e^{2 i \pi k / 2^b} |k\rangle$ (a `phase gradient state'), using our adder construction to add a register $Q$ into $G$ will cause phase kickback that applies the operation $\text{Grad} = \sum_{k=0}^{2^b-1} e^{2 i \pi k / 2^b} |k\rangle \langle k|$ to $V$.
 The $\text{Grad}$ operation is equivalent to applying the phase gate $Z^{2^-k}$ to the qubit position at $k$ for each qubit within $Q$.
-Some quantum Fourier transform circuits involve conditional uses of $\text{Grad}$, so it is possible that temporary-ANDs improve the T-cost of those circuits.
+Some quantum Fourier transform circuits involve conditional uses of $\text{Grad}$, so it is possible that temporary-ANDs improve the T-count of those circuits.
+
+Our constructions reduce many existing estimates of the cost of quantum computation.
+For example, \cite{Fowler2012} estimates that factoring a 2000-bit number would take 27 hours and $2 \cdot 10^{12}$ distilled $|A\rangle$.
+Their time estimate is based on each Toffoli having a T-depth of 1, and their $|A\rangle$ count estimate is based on Toffolis having a T-count of 7.
+Because Shor's algorithm is dominated by the cost of additions, our techniques (and previous work) multiply the T-count by $\frac{4}{14}$ and the T-depth by $\frac{1}{3}$.
+This reduces the estimate to 9 hours and $6 \cdot 10^{11}$ distilled $|A\rangle$ states.
 
 Other examples of operations which benefit from cheaper temporary AND gates include:
 
@@ -459,16 +464,16 @@ We leave further low hanging fruit as exercises for the reader.
 \section{Conclusion}
 \label{sec:conclusion}
 
-For over a decade, the T-cost of addition has been $8n + O(1)$ \cite{Barenco1995, Cuccaro2004, Amy2013}).
+For over a decade, the T-count of addition has been $8n + O(1)$ \cite{Barenco1995, Cuccaro2004, Amy2013}).
 This was believed to be optimal \cite{AustinDiscussionsAndEmails2017}.
-In this paper, we halved the T-cost of addition to $4n + O(1)$.
+In this paper, we halved the T-count of addition to $4n + O(1)$.
 We did so with a construction that applies to many other circuits: the temporary AND gate.
 
-Our result raises the question of whether further T-cost improvements to addition or to temporary AND gates are possible.
-A simple method for proving lower bounds on the T-cost of an operation is to synthesize T gates by applying that operation.
+Our result raises the question of whether further T-count improvements to addition or to temporary AND gates are possible.
+A simple method for proving lower bounds on the T-count of an operation is to synthesize T gates by applying that operation.
 In \autoref{fig:lower-bound-temporary-and} we use a T gate and a single temporary-AND to synthesize three T gates.
-This proves that the T-cost of a temporary-AND is at least two.
-Two is less than four, but we are not aware of any method for further reducing the T-cost of temporary-ANDs or for synthesizing more T gates out of a temporary-AND.
+This proves that the T-count of a temporary-AND is at least two.
+Two is less than four, but we are not aware of any method for further reducing the T-count of temporary-ANDs or for synthesizing more T gates out of a temporary-AND.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
