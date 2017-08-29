@@ -1,8 +1,7 @@
-\documentclass{quantumarticle-customized}
+\documentclass[twocolumn]{revtex4-1}
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{graphicx}
-\usepackage[sort,numbers]{natbib}
 \usepackage[pdfpagelabels,pdftex,bookmarks,breaklinks]{hyperref}
 \usepackage{tikz}
 \usepackage[all]{hypcap}
@@ -17,15 +16,13 @@
 \newcommand{\qA}{\lstick{|A\rangle}}
 \newcommand{\qO}{\lstick{|0\rangle}}
 
+\def\sectionautorefname{Section}
+
+\begin{document}
 \title{Halving the cost of quantum addition}
 \author{Craig Gidney}
 \affiliation{Google, Santa Barbara, CA 93117, USA}
 \email{craiggidney@google.com}
-
-\def\sectionautorefname{Section}
-
-\begin{document}
-\maketitle
 
 \begin{abstract}
 We improve the number of T gates needed to perform an $n$-bit adder from $8n + O(1)$ \citep{Amy2013, Cuccaro2004, AustinDiscussionsAndEmails2017} to $4n + O(1)$.
@@ -38,6 +35,7 @@ Because T gates dominate the cost of quantum computation based on the surface co
 In addition to our $n$-bit adder circuit with T-count of $4n + O(1)$, we show how to construct an $n$-bit controlled adder circuit with T-count of $8n + O(1)$, and a temporary adder that can be computed for the same cost as the normal adder but whose result can be kept until later uncomputed without T gates.
 \end{abstract}
 
+\maketitle
 
 \section{Introduction}
 \label{sec:introduction}
@@ -150,7 +148,7 @@ Computing the temporary logical-AND has a T-count of 4, but when uncomputing a t
       &  &&         &\qw &xy && &&|A\rangle &&\targ   &\targ   &\ctrl{-2}&\qT  &\ctrl{-2} &\qH &\qS &\qw &\\
     }
   }
-  \\ \vspace*{0.25cm} \\
+  \vspace*{0.25cm} \\
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=0.7em @C=0.7em {
       &x  &&\ctrl{1} &\qw &x && &&&\qw &\qw    &\ctrl{1}         &\qw &&&&&&&&&&\\
@@ -184,6 +182,14 @@ Temporary adders are useful when a circuit is going to compute an addition, then
 Instead of paying $4n + O(1)$ T gates to compute an addition, and then $4n + O(1)$ more T gates to uncompute the addition with a subtraction, our temporary adder stops halfway through the normal addition (after all the logical-ANDs have been computed, but before they've been uncomputed) and applies a few cleanup operations so that the sum is available for use.
 When the sum is no longer needed, the partially-performed addition is uncomputed instead of completed.
 
+Decreasing the T-count of addition reduces the T-count of any construction based on addition.
+For example, in \citep{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|A\rangle$ states.
+The time estimate is based on Toffolis having a T-depth of 3, and the $|A\rangle$ count estimate is based on Toffolis having a T-count of 7.
+Because Shor's algorithm is dominated by the cost of additions, our techniques (and previous work) reduce the average T-count and T-depth of its Toffolis to $2$ and $1$ respectively.
+This reduces the estimates to 9 hours and $6 \cdot 10^{11}$ distilled $|A\rangle$ states.
+
+On top of reducing the T-count of obviously related operations like multiplication and exponentiation, reducing the T-count of addition also reduces the T-count of quantum-specific operations such as rotating qubits.
+
 \begin{figure}
   (a) \resizebox{\linewidth}{!}{
     \Qcircuit @R=0.7em @C=0.7em {
@@ -195,7 +201,7 @@ When the sum is no longer needed, the partially-performed addition is uncomputed
       &&               &&&&        &        &\targ   &\qw &    &c_{k+1}&    &    &    &\ldots &    &    &    &c_{k+1}&    &    &\targ   &\qw     &        &        &        &        &    &    &&&&&&&&\\
     }
   }
-  \\ \vspace*{0.25cm} \\
+  \vspace*{0.25cm} \\
   (b) \resizebox{\linewidth}{!}{
     \Qcircuit @R=0.7em @C=0.7em {
       &a &&\ctrl{2}&\qw     &\qw     &\ctrl{3}&\qw &a          &&&&&&&&&&&&&&&&&&&&&&\\
@@ -213,14 +219,6 @@ When the sum is no longer needed, the partially-performed addition is uncomputed
   }
   \label{fig:variations-on-full-adder-block}
 \end{figure}
-
-Decreasing the T-count of addition reduces the T-count of any construction based on addition.
-For example, in \citep{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|A\rangle$ states.
-The time estimate is based on Toffolis having a T-depth of 3, and the $|A\rangle$ count estimate is based on Toffolis having a T-count of 7.
-Because Shor's algorithm is dominated by the cost of additions, our techniques (and previous work) reduce the average T-count and T-depth of its Toffolis to $2$ and $1$ respectively.
-This reduces the estimates to 9 hours and $6 \cdot 10^{11}$ distilled $|A\rangle$ states.
-
-On top of reducing the T-count of obviously related operations like multiplication and exponentiation, reducing the T-count of addition also reduces the T-count of quantum-specific operations such as rotating qubits.
 
 For example, our improved adder allows the operation $R_Z(\theta)$ to be applied to $n$ qubits with a total T-cost $4n + O(\text{poly}(\frac{1}{\epsilon}) \lg n)$.
 First, iteratively apply our temporary adder to compute the pop count of a register containing the target qubits.
