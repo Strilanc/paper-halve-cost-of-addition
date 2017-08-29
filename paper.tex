@@ -42,31 +42,56 @@ In addition to our $n$-bit adder circuit with T-count of $4n + O(1)$, we show ho
 \label{sec:introduction}
 
 The surface code is a quantum error correcting code that works on a 2D nearest-neighbour array of qubits and achieves a threshold error rate of approximately 1\% [[[[cite so much]]]].
-This makes the surface code a likely component in the architecture of future error corrected quantum computers, because 2D arrays of qubits with nearest-neighbor connections are possible with many qubit technologies [[[[cite so much]]]] and other known error correcting codes have lower thresholds or require stronger connectivity [[[[cite so much]]]].
+This makes the surface code a likely component in the architecture of future error corrected quantum computers, because 2D arrays of qubits with nearest-neighbor connections are possible with many qubit technologies [[[[cite so much]]]] and other well understood error correcting codes either have lower thresholds or require stronger connectivity [[[[cite so much]]]].
 
 One of the downsides of the surface code is that it has no cheap mechanism to apply non-Clifford operations such as $T$ gates.
 Instead, $T$ gates are performed by distilling and consuming $|A\rangle = \frac{1}{\sqrt{2}} (|0\rangle + e^{i \pi/4} |1\rangle)$ states.
 Consuming an $|A\rangle$ state to perform a T gate is simple, but distilling $|A\rangle$ states has significant cost.
 Because T gates are so expensive for the surface code, and the surface code is a likely component of future quantum computers, it is important to consider and optimize the number of T gates used by quantum circuits.
+Optimizing the T-count of basic elements of quantum circuits, such as the construction of adders and Toffoli gates, is even more important.
 
 The textbook construction of a Toffoli gate uses seven T gates \cite{Nielsen2009}.
 When Toffoli operations are paired, i.e. when an initial Toffoli operation is later uncomputed by a second Toffoli operation, each Toffoli in the pair can omit three of the T gates from the textbook construction.
-This introduces phase errors, assuming this doesn't affect intermediate operatoins, the second Toffoli gate can uncompute the phase errors while uncomputing the state permutation \cite{Barenco1995}.
-It is also possible to reduce the T-count of an unpaired Toffoli gate to 4 by using an ancilla qubit and classically conditioned fixup operations \cite{Jones2013}.
+This introduces phase errors but, assuming intermediate operations aren't poisoned by the phase errors, the second Toffoli gate can uncompute the phase errors while uncomputing the state permutation \cite{Barenco1995, Nielsen2009}.
+It is also possible to reduce the T-count of an unpaired Toffoli gate to 4 by using an ancilla qubit and a classically conditioned fixup operations \cite{Jones2013}.
 
 Existing Toffoli constructions used at least 4 T gates per Toffoli gate.
 The Cuccaro adder uses $2n-1$ Toffoli gates \cite{Cuccaro2004}.
 Correspondingly, existing adder constructions have T-counts of $8n-4$ \cite{Amy2013}.
-Adders with a T-count of $8n-4$ have been known for over a decade \cite{Barenco1995, Cuccaro2004}, and were believed to be optimal \cite{AustinDiscussionsAndEmails2017}.
+Adders with a T-count of $8n + O(1)$ have been known for over a decade \cite{Barenco1995, Cuccaro2004}.
+The leading factor of 8 has been conjectured to be optimal \cite{AustinDiscussionsAndEmails2017}.
+We show that this is not true by reducing the T-count of addition to $4n + O(1)$.
 
-Our paper is divided into four sections.
-In \autoref{sec:introduction}, we motivate the problem, discuss existing work, and note the many applications of our construction.
-\autoref{sec:construction} defines our $4n + O(1)$ adder and explains its pieces.
-\autoref{sec:other-applications} covers circuits for other adding tasks and discusses other kinds of circuits where the temporary-AND construction can improve T-counts.
-Finally, \autoref{sec:conclusion} summarizes our contributions and proves that at least two T gates are needed to perform a temporary AND while discussing future work.
+\begin{figure}
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=0.7em @C=0.7em {
+      &i_0 &&\ctrl{1} &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\ctrl{1}&\qw &i_0     &&&&&\\
+      &t_0 &&\ctrl{1} &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw &&&(t+i)_0 &&&\\
+      &    &&         &\ctrl{2}&\qw     &\ctrl{3}&\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{3}&\qw     &\ctrl{1}&\qw     &        &    &&&        &&&\\
+      &i_1 &&\qw      &\targ   &\ctrl{1}&\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw     &\ctrl{1}&\qw &i_1     &&&&&\\
+      &t_1 &&\qw      &\targ   &\ctrl{1}&\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw     &\qw     &\targ   &\qw &&&(t+i)_1 &&&\\
+      &    &&         &        &        &\targ   &\ctrl{2}&\qw     &\ctrl{3}&\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{3}&\qw     &\ctrl{1}&\targ   &\qw     &        &        &        &    &&&        &&&\\
+      &i_2 &&\qw      &\qw     &\qw     &\qw     &\targ   &\ctrl{1}&\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw &i_2     &&&&&\\
+      &t_2 &&\qw      &\qw     &\qw     &\qw     &\targ   &\ctrl{1}&\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\qw &&&(t+i)_2 &&&\\
+      &    &&         &        &        &        &        &        &\targ   &\ctrl{2}&\qw     &\ctrl{3}&\qw     &\ctrl{3}&\qw     &\ctrl{1}&\targ   &\qw     &        &        &        &        &        &        &    &&&        &&&\\
+      &i_3 &&\qw      &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\ctrl{1}&\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw &i_3     &&&&&\\
+      &t_3 &&\qw      &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\ctrl{1}&\qw     &\qw     &\qw     &\ctrl{1}&\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\qw &&&(t+i)_3 &&&\\
+      &    &&         &        &        &        &        &        &        &        &        &\targ   &\ctrl{2}&\targ   &\qw     &        &        &        &        &        &        &        &        &        &    &&&        &&&\\
+      &i_4 &&\qw      &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw &i_4     &&&&&\\
+      &t_4 &&\qw      &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\qw &&&(t+i)_4 &&&\\
+    }
+  }
+  \caption{
+	A 5-bit adder with T-count of 16.
+	Uses Clifford operations, four logical-AND computations each with a T-count of 4, and four logical-AND erasures requiring no T gates.
+	Generalizes to an $n$-bit adder with a T-count of $4n - 4$.
+	See \autoref{fig:full-adder-block} for the adder building-block and \autoref{fig:temporary-logical-AND} for the logical-AND computation and uncomputation circuits.
+  }
+  \label{fig:multi-bit-adder-example}
+\end{figure}
 
-We improve the number of T gates needed to perform an adder by halving the number of T gates needed to perform paired Toffoli gates.
-In this paper we focus on how this halves the T-count of addition, but improving the T-count of paired Toffolis is a widely applicable optimization.
+We halve the number of T gates needed to perform an adder by halving the number of T gates needed to perform Toffoli gates that appear in compute/uncompute pairs.
+In this paper we focus on how this optimization halves the T-count of addition, but improving the T-count of paired Toffolis is a widely applicable optimization.
 Other examples of operations whose T-count can be improved by our constructions include:
 
 - Integer arithmetic in general.
@@ -86,39 +111,18 @@ Other examples of operations whose T-count can be improved by our constructions 
 The above list is not exhaustive.
 We leave further low hanging fruit as an exercise for the reader.
 
+Our paper is divided into four sections.
+In \autoref{sec:introduction}, we motivate the need to optimize T-counts, discuss existing work, and note possible applications of our low T-count constructions.
+\autoref{sec:construction} presents our $4n + O(1)$ T-count adder and explains its pieces, including the temporary logical-AND.
+\autoref{sec:other-applications} discusses several circuit constructions and estimates improved by our adder and temporary logical-AND constructions.
+Finally, \autoref{sec:conclusion} summarizes our contributions and discusses future work.
+
 
 \section{Adder Construction}
 \label{sec:construction}
 
-In \autoref{fig:multi-bit-adder-example}, we construct a 5-bit adder with a T-count of 16.
+In \autoref{fig:multi-bit-adder-example}, we present a 5-bit adder with a T-count of 16.
 It performs 4 temporary logical-ANDs, each with a T-count of 4.
-
-\begin{figure}
-  \resizebox{\linewidth}{!}{
-    \Qcircuit @R=0.7em @C=0.7em {
-      &i_0 &&\ctrl{1} &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\ctrl{1}&\qw &i_0     &&&&&\\
-      &t_0 &&\ctrl{1} &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw &&&(t+i)_0 &&&\\
-      &    &&         &\ctrl{2}&\qw     &\ctrl{3}&\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{3}&\qw     &\ctrl{1}&\qw     &        &    &&&        &&&\\
-      &i_1 &&\qw      &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw     &\ctrl{1}&\qw &i_1     &&&&&\\
-      &t_1 &&\qw      &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw     &\qw     &\targ   &\qw &&&(t+i)_1 &&&\\
-      &    &&         &        &        &\targ   &\qw &\ctrl{2}&\qw     &\ctrl{3}&\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{3}&\qw     &\ctrl{1}&\targ   &\qw     &        &        &        &    &&&        &&&\\
-      &i_2 &&\qw      &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw &i_2     &&&&&\\
-      &t_2 &&\qw      &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\qw &&&(t+i)_2 &&&\\
-      &    &&         &        &        &        &    &        &        &\targ   &\qw &\ctrl{2}&\qw     &\ctrl{3}&\qw     &\ctrl{3}&\qw     &\ctrl{1}&\targ   &\qw     &        &        &        &        &        &        &    &&&        &&&\\
-      &i_3 &&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw     &\qw     &\ctrl{1}&\targ   &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw &i_3     &&&&&\\
-      &t_3 &&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\targ   &\ctrl{1}&\qw     &\qw     &\qw     &\ctrl{1}&\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\qw &&&(t+i)_3 &&&\\
-      &    &&         &        &        &        &    &        &        &        &    &        &        &\targ   &\ctrl{2}&\targ   &\qw     &        &        &        &        &        &        &        &        &        &    &&&        &&&\\
-      &i_4 &&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\ctrl{1}&\qw &i_4     &&&&&\\
-      &t_4 &&\qw      &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\qw &\qw     &\qw     &\qw     &\targ   &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\qw     &\targ   &\qw &&&(t+i)_4 &&&\\
-    }
-  }
-  \caption{
-	A 5-bit adder with T-count of 16.
-	Uses Clifford operations, four logical-AND computations each with a T-count of 4, and four logical-AND erasures requiring no T gates.
-	Generalizes to an $n$-bit adder with a T-count of $4n - 4$.
-  }
-  \label{fig:multi-bit-adder-example}
-\end{figure}
 
 We construct $n$-bit adders by nesting $n$ copies of the building block shown in \autoref{fig:full-adder-block} inside of each other.
 We then specialize the outer-most and inner-most blocks (which act on the low bit and high bit respectively) based on the fact that they either have no carry input or no carry output.
@@ -133,51 +137,49 @@ We then specialize the outer-most and inner-most blocks (which act on the low bi
     }
   }
   \caption{
-	Adder circuit building-block with a marginal T-count of 4.
+	Adder circuit building-block with a T-count of 4.
   }
   \label{fig:full-adder-block}
 \end{figure}
 
 Our adder circuits use temporary logical-AND operations.
-We define the temporary-AND computation (which we draw as a wire emerging from two controls) in \autoref{fig:compute-logical-AND}.
-We define the corresponding uncomputation (which we draw as a wire merging into two controls) in \autoref{fig:erase-logical-AND}.
-Computing the temporary-AND has a T-count of 4, but when uncomputing a temporary-AND we have access to measurement only need Clifford operations.
+We define the temporary logical-AND computation (which we draw as a wire emerging from two controls), and the corresponding uncomputation (which we draw as a wire merging into two controls), in \autoref{fig:compute-logical-AND}.
+Computing the temporary logical-AND has a T-count of 4, but when uncomputing a temporary logical-AND we have access to measurement and only need Clifford operations.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=0.7em @C=0.7em {
-      &x &&\ctrl{1} &\qw & x  && &&          &&\targ    &\ctrl{2}&\qw     &\qTi &\qw     &\ctrl{2}&\targ     &\qw &\qw &\qw &\\
-      &y &&\ctrl{1} &\qw & y  &&=&&          &&\targ    &\qw     &\ctrl{1}&\qTi &\ctrl{1}&\qw     &\targ     &\qw &\qw &\qw &\\
-      &  &&         &\qw & xy && &&|A\rangle &&\ctrl{-2}&\targ   &\targ   &\qT  &\targ   &\targ   &\ctrl{-2} &\qH &\qS &\qw &\\
+      &x &&\ctrl{1} &\qw &x  && &&          &&\ctrl{2}&\qw     &\targ    &\qTi &\targ     &\qw &\qw &\qw &\\
+      &y &&\ctrl{1} &\qw &y  &&=&&          &&\qw     &\ctrl{1}&\targ    &\qTi &\targ     &\qw &\qw &\qw &\\
+      &  &&         &\qw &xy && &&|A\rangle &&\targ   &\targ   &\ctrl{-2}&\qT  &\ctrl{-2} &\qH &\qS &\qw &\\
     }
   }
-  \caption{
-	Computing the logical-AND of two qubits, with a T-count of 4 and a T-depth of 1.
-	The $|A\rangle$ state input on the bottom wire contributes to the T-count (because $|A\rangle$ states are the resource used to perform T gates).
-  }
-  \label{fig:compute-logical-AND}
-\end{figure}
-
-\begin{figure}
+  \\ \vspace*{0.25cm} \\
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=0.7em @C=0.7em {
-      &x  &&\ctrl{1} &\qw &x && &&\qw &\qw    &\ctrl{1} &\qw \\
-      &y  &&\ctrl{1} &\qw &y &&=&&\qw &\qw    &\gate{Z} &\qw \\
-      &xy &&\qw      &    &  && &&\qH &\meter &\cw \cwx \bullet &    \\
+      &x  &&\ctrl{1} &\qw &x && &&&\qw &\qw    &\ctrl{1}         &\qw &&&&&&&&&&\\
+      &y  &&\ctrl{1} &\qw &y &&=&&&\qw &\qw    &\gate{Z}         &\qw &&&&&&&&&&\\
+      &xy &&\qw      &    &  && &&&\qH &\meter &\cw \cwx \bullet &    &&&&&&&&&&\\
     }
   }
   \caption{
-	Uncomputing the logical-AND of two qubits using only Clifford operations.
-    Has a T-count of 0.
+	How to compute and uncompute the logical-AND of two qubits.
+	The computation circuit has a T-count of 4 and a T-depth of 1.
+	Note that the $|A\rangle$ state input contributes to the T-count, because $|A\rangle$ states are the resource used to perform T gates.
+	The uncomputation circuit only uses Clifford gates, and so has a T-count of zero.
+    \\
+    An alternative uncomputation construction is to simply do the reverse of the computation circuit.
+    This alternative approach has a net T-count of 2 (because an $|A\rangle$ state is recovered).
+    That would still be an improvement on existing work, but inferior to the measure-and-fixup construction shown above.
   }
-  \label{fig:erase-logical-AND}
+  \label{fig:temporary-logical-AND}
 \end{figure}
 
 
 \section{Other Applications}
 \label{sec:other-applications}
 
-With a slight tweak to the adder building block, we can make the sum available half-way through the adder circuit, before any uncomputation of temporary-ANDs occurs.
+With a slight tweak to the adder building block, we can make the sum available half-way through the adder circuit, before any uncomputation of temporary logical-ANDs occurs.
 When a circuit is going to compute an addition, then later uncompute it, using the sum at the half-way point can halve the T-count.
 Instead of paying $4n + O(1)$ T gates to compute the addition, and then $4n + O(1)$ more T gates to uncompute the addition, we simply work with the intermediate state of a single addition computation then backtrack instead of finishing.
 \autoref{fig:temporary-full-adder-block} shows the temporary adder building block, which is also a temporary three-bit adder with T-count 4.
@@ -192,7 +194,7 @@ Instead of paying $4n + O(1)$ T gates to compute the addition, and then $4n + O(
     }
   }
   \caption{
-	Temporary-adder circuit building-block with a marginal T-count of 4.
+	Temporary-adder circuit building-block with a T-count of 4.
 	Uncomputing the result requires no T gates.
 	Can be used to temporarily add two $n$-bit registers (T-count $4n + O(1)$).
 	Can be used to temporarily compute the pop count of an $n$-bit register (T-count $4n + O(\lg n)$).
@@ -215,78 +217,78 @@ We use temporary logical-ANDs to construct an improved circuit with a T-count of
     }
   }
   \caption{
-	Controlled-adder circuit building-block with a marginal T-count of 8.
+	Controlled-adder circuit building-block with a T-count of 8.
   }
   \label{fig:controlled-full-adder-block}
 \end{figure}
 
 Decreasing the T-count of addition reduces the T-count of any construction based on addition.
-For example, \cite{Fowler2012} estimate that factoring a 2048-bit number would take 27 hours and $2 \cdot 10^{12}$ distilled $|A\rangle$.
-Their time estimate is based on Toffolis having a T-depth of 3, and their $|A\rangle$ count estimate is based on Toffolis having a T-count of 7.
+For example, in \cite{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|A\rangle$.
+The time estimate is based on Toffolis having a T-depth of 3, and the $|A\rangle$ count estimate is based on Toffolis having a T-count of 7.
 Because Shor's algorithm is dominated by the cost of additions, our techniques (and previous work) reduce the average T-count and T-depth of its Toffolis to $2$ and $1$ respectively.
-This reduces the estimate to 9 hours and $6 \cdot 10^{11}$ distilled $|A\rangle$ states.
+This reduces the estimates to 9 hours and $6 \cdot 10^{11}$ distilled $|A\rangle$ states respectively.
 
-On top of reducing the T-count of obviously related operations like multiplication, reducing the T-count of addition also reduces the T-count quantum-specific operations such as rotating qubits.
-For example, our improved adder allows the operation $R_Z(\theta)$ to be applied to $n$ qubits with a T-cost $4n + O(\text{poly}(\frac{1}{\epsilon}) \lg n)$.
-First, use our temporary adder iteratively to compute the pop count of a register containing the target qubits.
+On top of reducing the T-count of obviously related operations like multiplication and exponentiation, reducing the T-count of addition also reduces the T-count of quantum-specific operations such as rotating qubits.
+For example, our improved adder allows the operation $R_Z(\theta)$ to be applied to $n$ qubits with a total T-cost $4n + O(\text{poly}(\frac{1}{\epsilon}) \lg n)$.
+First, iteratively apply our temporary adder to compute the pop count of a register containing the target qubits.
 This takes $4n + O(\lg n)$ T gates to do.
 Then, for each position $k$ in the pop count output register, synthesize and apply the operation $R_Z(\theta \cdot 2^k)$ to the qubit at that position.
 This uses a number of T gates proportional to some polynomial of the desired precision times the number of bits in the output register.
-But the output register is exponentially smaller than $n$, so this cost is asymptotically negligible.
+But the output register is exponentially smaller than $n$, so this cost is negligible for large $n$.
 Finally, uncompute the temporary pop count (using no T gates).
-This applies the desired operation.
+This applies the desired $R_Z(\theta)$ operations.
 
-Another rotation-based operation that can be implemented via an adder is the ``$n$-bit phase gradient operation" $\text{Grad}_n = \sum_{k=0}^{2^n-1} e^{2 i \pi k / 2^n} |k\rangle \langle k|$.
-Normally this operation would be implemented by separately applying the operation $Rz(2 \pi 2^{-p})$ to each qubit, where $p$ is the qubit's index in the register and the number of T gates needed for each rotation depended on the maximum per-gate error $\epsilon$.
+Another rotation-based operation that can be implemented via an adder is the $n$-bit phase gradient operation $\text{Grad}_n = \sum_{k=0}^{2^n-1} e^{2 i \pi k / 2^n} |k\rangle \langle k|$.
+Normally this operation would be implemented by separately applying the operation $R_z(\pi 2^{-p})$ to each qubit, where $p$ is the qubit's index in the register and the number of T gates needed for each rotation depends on the maximum per-gate error $\epsilon$.
 However, assuming a ``phase gradient register" prepared in the state $2^{-b/2} \sum_{k=0}^{2^b-1} e^{2 i \pi k / 2^b} |k\rangle$ is available, the phase gradient operation can be performed via addition using only $4n + O(1)$ T gates.
 Just add the target register into the phase gradient register, and phase kickback will apply the $\text{Grad}_n$ operation to the target.
 Ignoring the one-time cost of initializing the reusable phase gradient register, this uses only $4n + O(1)$ T gates.
 
 Some quantum Fourier transform circuits use controlled phase gradient operations.
 Controlled phase gradients can be applied by adding into the reusable phase gradient register with controlled adders instead of uncontrolled adders.
-Assume a maximum per-gate error of $\epsilon$, start from the textbook QFT circuit based on the Cooley-Tukey algorithm from \cite{Nielsen2009}, and drop negligible rotations, merge individual controlled rotations into controlled phase gradients, and apply those controlled phase gradients using controlled adders.
+Assume a maximum per-gate error of $\epsilon$, start from the textbook QFT circuit based on the Cooley-Tukey algorithm from \cite{Nielsen2009}, drop negligible rotations, merge individual controlled rotations into controlled phase gradients, and apply those controlled phase gradients using controlled adders.
 The result is a simple approximate $n$-qubit QFT circuit that uses fewer than $8 n \lg \lg \frac{1}{\epsilon}$ T gates.
 
 The temporary logical-AND is useful for optimizing an even wider variety of circuits than addition is.
-Whenever Toffoli gates appear in compute/uncompute pairs, and intermediate operations are not sensitive to phase errors on the target or controls of the Toffoli gate (see \autoref{fig:pair-definition}), it is possible to save 4 T gates by replacing the pair of Toffoli gates with a temporary logical-AND.
+Whenever Toffoli gates appear in compute/uncompute pairs, and intermediate operations are not sensitive to phase errors on the controls of the Toffoli gate (i.e. the condition in \autoref{fig:pair-definition} is satisfied), it is possible to save 4 T gates by replacing the pair of Toffoli gates with a temporary logical-AND.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=0.7em @C=0.7em {
-      &\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw && &&&\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &            &\\
-      &          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw && &&&          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &            &\\
-      &          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&=&&&          &\ctrl{2}   &\ghost{U}       &\ctrl{2}&\qw &            &\\
-      &          &\targ      &\ghost{U}       &\targ   &\qw && &&&          &\targ      &\ghost{U}       &\targ   &\qw &            &\\
-      &          &           &                &        &    && &&&\qO       &\targ      &\qw             &\targ   &\qw &| 0 \rangle &\\
+      &\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &&               &&\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &\\
+      &          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&               &&          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &\\
+      &          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&\stackrel{?}{=}&&          &\ctrl{2}   &\ghost{U}       &\ctrl{2}&\qw &\\
+      &          &\targ      &\ghost{U}       &\targ   &\qw &&               &&          &\targ      &\ghost{U}       &\targ   &\qw &\\
+      &          &\qw        &\qw             &\qw     &\qw &&               &&          &\targ      &\qw             &\targ   &\qw &\\
     }
   }
   \caption{
 	A sufficient condition for replacing a pair of Toffoli gates with a temporary logical-AND, saving 4 T gates.\\
-	1) The later Toffoli gate must be uncomputing the earlier Toffoli gate (indicated by the ancilla on the RHS starting and ending up in the $|0\rangle$ state).\\
-	2) Intermediate operations must not be sensitive to the presence of entangled copies of the target.
+	1) The later Toffoli gate must be uncomputing the earlier Toffoli gate.\\
+	2) Intermediate operations must not be sensitive to the presence of the entangled ancilla.
   }
   \label{fig:pair-definition}
 \end{figure}
 
 For example, the Grover diffusion operator's cost is dominated by the cost of merging $n$ controls.
 Merging the controls can be computed, and then uncomputed, with Toffoli gates.
-By instead iteratively merging the controls with nested temporary-ANDs, the Grover diffusion operation can be applied using $4n + O(1)$ T gates.
+By instead iteratively merging the controls with nested temporary logical-ANDs, the Grover diffusion operation can be applied using $4n + O(1)$ T gates.
 
-For other cases where temporary-ANDs can be used to optimize circuits, we refer back to the introduction.
+For other cases where temporary logical-ANDs can be used to optimize circuits, we refer back to the introduction.
 Even circuits based on simulating physical systems, not just abstract mathematical problems, can benefit \cite{RyanEmails2017}.
 
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-For over a decade, the T-count of addition has been known to be at most $8n + O(1)$ \cite{Amy2013, Barenco1995, Cuccaro2004}).
-This was believed to be optimal \cite{AustinDiscussionsAndEmails2017}.
-In this paper, we halved the T-count of addition to $4n + O(1)$.
-We did so with a construction that applies to many other circuits: the temporary logical-AND gate.
+For over a decade, the T-count of addition has been known to be at most $8n - 4$ \cite{Amy2013, Barenco1995, Cuccaro2004}.
+This was conjectured to be optimal \cite{AustinDiscussionsAndEmails2017}.
+We halved the leading factor of this cost, and we did so via a construction that applies to many other circuits: the temporary logical-AND gate.
+Our work represents a significant and widely applicable improvement to the state of the art in synthesizing quantum circuits with low T gate counts.
 
-We note that the T-count of the temporary logical-AND is at least 2 in \autoref{fig:lower-bound-temporary-and}.
-Two is less than four, but we are not aware of any method for further reducing the T-count of temporary-ANDs or for synthesizing more T gates out of a temporary-AND.
-We are unsure if addition or temporary logical-AND gates can be done with fewer, but certain that T-count improvements as significant as the ones we have made in this paper are possible for other basic operations used by many circuits.
+We are unsure if addition or temporary logical-AND gates can be done with fewer.
+A simple argument based on synthesizing T gates proves that the T-count of the temporary logical-AND is at least 2 in \autoref{fig:lower-bound-logical-AND}.
+Two is less than four, but we are not aware of any method for further reducing the T-count of temporary logical-ANDs or for synthesizing more T gates out of a temporary logical-AND.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
@@ -298,14 +300,15 @@ We are unsure if addition or temporary logical-AND gates can be done with fewer,
     }
   }
   \caption{
-	Three T gates can be synthesized by performing a temporary-AND, one T gate, and various Clifford operations.
-	Clifford operations can't produce T gates, so the extra two gates must be coming from the temporary-AND.
-	This proves that at least two T gates went into performing the temporary-AND.
+	Three T gates can be synthesized by performing a temporary logical-AND, one T gate, and various Clifford operations.
+	Clifford operations can't produce T gates, so the extra two gates must be coming from the temporary logical-AND.
+	This proves that at least two T gates went into performing the temporary logical-AND.
   }
-  \label{fig:lower-bound-temporary-and}
+  \label{fig:lower-bound-logical-AND}
 \end{figure}
 
-Our work represents a significant and widely applicable improvement to the state of the art in synthesizing quantum circuits with low T gate counts.
+Regardless, it is clear that other T-count improvements as significant as the ones we have made in this paper are waiting to be found.
+Not just in the construction of basic low-level operations, but in medium-level constructions and high-level constructions and generally across the whole technology stack that will be needed to perform error corrected quantum computation for the first time.
 
 
 \section{Acknowledgements}
