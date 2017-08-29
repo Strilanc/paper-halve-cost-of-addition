@@ -56,12 +56,11 @@ When Toffoli operations are paired, i.e. when an initial Toffoli operation is la
 This introduces phase errors but, assuming intermediate operations aren't poisoned by the phase errors, the second Toffoli gate can uncompute the phase errors while uncomputing the state permutation \citep{Barenco1995, Nielsen2009}.
 It is also possible to reduce the T-count of an unpaired Toffoli gate to 4 by using an ancilla qubit and a classically conditioned fixup operations \citep{Jones2013}.
 
-Existing Toffoli constructions used at least 4 T gates per Toffoli gate.
+Existing Toffoli constructions use at least 4 T gates per Toffoli gate.
 The Cuccaro adder uses $2n-1$ Toffoli gates \citep{Cuccaro2004}.
 Correspondingly, existing adder constructions have T-counts of $8n-4$ \citep{Amy2013}.
 Adders with a T-count of $8n + O(1)$ have been known for over a decade \citep{Barenco1995, Cuccaro2004}.
 The leading factor of 8 has been conjectured to be optimal \citep{AustinDiscussionsAndEmails2017}.
-We show that this is not true by reducing the T-count of addition to $4n + O(1)$.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
@@ -92,28 +91,24 @@ We show that this is not true by reducing the T-count of addition to $4n + O(1)$
 \end{figure}
 
 We halve the number of T gates needed to perform an adder by halving the number of T gates needed to perform Toffoli gates that appear in compute/uncompute pairs.
-In this paper we focus on how this optimization halves the T-count of addition, but improving the T-count of paired Toffolis is a widely applicable optimization.
-Other examples of operations whose T-count can be improved by our constructions include:
+Although we focus on adders in this paper, paired Toffoli gates appear in a wide variety of circuits.
+Other examples of operations with circuits whose T-count can be improved by our constructions include:
 
-- Integer arithmetic in general.
-
-- Modular arithmetic.
-
-- Applying the same rotation to many qubits.
-
-- The quantum Fourier transform.
-
-- Operations whose target is indexed by a quantum register.
-
-- Phasing a register by a computable function $f$ (i.e. applying the operation $U_f = \exp\left( i \sum_k f(k) |k\rangle \langle k| \right)$).
-
-- Expanding a binary register into a unary register.
+\begin{itemize}
+  \item Integer arithmetic in general.
+  \item Modular arithmetic.
+  \item Applying the same rotation $R_Z(\theta)$ to many qubits.
+  \item The quantum Fourier transform.
+  \item Operations whose target is indexed by a quantum register.
+  \item Phasing a register by a computable function $f$, i.e. applying the operation $U_f = \exp\left( i \sum_k f(k) |k\rangle \langle k| \right)$.
+  \item Expanding a binary register into a unary register.
+\end{itemize}
 
 The above list is not exhaustive.
 We leave further low hanging fruit as an exercise for the reader.
 
 Our paper is divided into four sections.
-In \autoref{sec:introduction}, we motivate the need to optimize T-counts, discuss existing work, and note possible applications of our low T-count constructions.
+In \autoref{sec:introduction}, we motivate the need to optimize T-counts, discuss existing work, and note the wide applicability of our low T-count constructions.
 \autoref{sec:construction} presents our $4n + O(1)$ T-count adder and explains its pieces, including the temporary logical-AND.
 \autoref{sec:other-applications} discusses several circuit constructions and estimates improved by our adder and temporary logical-AND constructions.
 Finally, \autoref{sec:conclusion} summarizes our contributions and discusses future work.
@@ -180,87 +175,86 @@ Computing the temporary logical-AND has a T-count of 4, but when uncomputing a t
 \section{Other Applications}
 \label{sec:other-applications}
 
-With a slight tweak to the adder building block, we can make the sum available half-way through the adder circuit, before any uncomputation of temporary logical-ANDs occurs.
-When a circuit is going to compute an addition, then later uncompute it, using the sum at the half-way point can halve the T-count.
-Instead of paying $4n + O(1)$ T gates to compute the addition, and then $4n + O(1)$ more T gates to uncompute the addition, we simply work with the intermediate state of a single addition computation then backtrack instead of finishing.
-\autoref{fig:temporary-full-adder-block} shows the temporary adder building block, which is also a temporary three-bit adder with T-count 4.
-
-\begin{figure}
-  \resizebox{\linewidth}{!}{
-    \Qcircuit @R=0.7em @C=0.7em {
-      &a &&\ctrl{2}&\qw     &\qw     &\ctrl{3}&\qw &a          &&&&&&& \\
-      &b &&\targ   &\ctrl{1}&\ctrl{1}&\targ   &\qw &b          &&&&&&& \\
-      &c &&\targ   &\ctrl{1}&\targ   &\qw     &\qw &&&&(a+b+c)_0  &&&& \\
-      &  &&        &        &\qw     &\targ   &\qw &&&&(a+b+c)_1  &&&& \\
-    }
-  }
-  \caption{
-	Temporary-adder circuit building-block with a T-count of 4.
-	Uncomputing the result requires no T gates.
-	Can be used to temporarily add two $n$-bit registers (T-count $4n + O(1)$).
-	Can be used to temporarily compute the pop count of an $n$-bit register (T-count $4n + O(\lg n)$).
-  }
-  \label{fig:temporary-full-adder-block}
-\end{figure}
+\autoref{fig:variations-on-full-adder-block} shows the building-blocks for two variations on our adder: a controlled adder and a temporary adder.
 
 Some additions, such as the ones performed by the multiplications within the modular exponentiation in Shor's algorithm, are conditioned on a control qubit.
-\citep{Coreas2017} derives a controlled-addition construction with T-count of $21n + O(1)$.
-We use temporary logical-ANDs to construct an improved circuit with a T-count of $8n + O(1)$ (see \autoref{fig:controlled-full-adder-block} for the building-block).
+Our controlled adder reduces the cost of these additions from $21n + O(1)$ \citep{Coreas2017} to $8n + O(1)$.
+
+Temporary adders are useful when a circuit is going to compute an addition, then later uncompute it.
+Instead of paying $4n + O(1)$ T gates to compute an addition, and then $4n + O(1)$ more T gates to uncompute the addition with a subtraction, our temporary adder stops halfway through the normal addition (after all the logical-ANDs have been computed, but before they've been uncomputed) and applies a few cleanup operations so that the sum is available for use.
+When the sum is no longer needed, the partially-performed addition is uncomputed instead of completed.
 
 \begin{figure}
-  \resizebox{\linewidth}{!}{
+  (a) \resizebox{\linewidth}{!}{
     \Qcircuit @R=0.7em @C=0.7em {
-      &\text{control} &&&&\qw     &\qw     &\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\qw     &\ctrl{2}&\qw     &\qw &&&\text{control}               &&&&&&\\
-      &&c_k            &&&\ctrl{2}&\qw     &\ctrl{3}&\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\ctrl{3}&\qw     &\qw     &\ctrl{2}&\qw &c_k                          &&&&&&&&\\
-      &&i_k            &&&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\ctrl{1}&\targ   &\qw &i_k                          &&&&&&&&\\
-      &&t_k            &&&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\targ   &\targ   &\qw &&&&&(t+i \cdot \text{control})_k &&&&&\\
-      &               &&&&        &        &\targ   &\qw &    &c_{k+1}&    &    &    &\ldots &    &    &    &c_{k+1}&    &    &\targ   &\qw     &        &        &    &    &&&&&&&&\\
+      &&\text{control} &&&&\qw     &\qw     &\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\qw     &\ctrl{2}&\qw     &\ctrl{2}&\qw     &\qw &&&\text{control}               &&&&&&\\
+      &&&c_k            &&&\ctrl{3}&\qw     &\ctrl{4}&\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\ctrl{4}&\qw     &\qw     &\qw     &\qw     &\ctrl{3}&\qw &c_k                          &&&&&&&&\\
+      &&&i_k            &&&\targ   &\ctrl{2}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{2}&\ctrl{1}&\qw     &\ctrl{1}&\targ   &\qw &i_k                          &&&&&&&&\\
+      &&               &&&&        &        &        &    &    &       &    &    &    &       &    &    &    &       &    &    &        &        &        &\ctrl{1}&\qw     &        &    &    &&&&&&&&\\
+      &&&t_k            &&&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\qw     &\targ   &\qw     &\targ   &\qw &&&&&(t+i \cdot \text{control})_k &&&&&\\
+      &&               &&&&        &        &\targ   &\qw &    &c_{k+1}&    &    &    &\ldots &    &    &    &c_{k+1}&    &    &\targ   &\qw     &        &        &        &        &    &    &&&&&&&&\\
+    }
+  }
+  \\ \vspace*{0.25cm} \\
+  (b) \resizebox{\linewidth}{!}{
+    \Qcircuit @R=0.7em @C=0.7em {
+      &a &&\ctrl{2}&\qw     &\qw     &\ctrl{3}&\qw &a          &&&&&&&&&&&&&&&&&&&&&&\\
+      &b &&\targ   &\ctrl{1}&\ctrl{1}&\targ   &\qw &b          &&&&&&&&&&&&&&&&&&&&&&\\
+      &c &&\targ   &\ctrl{1}&\targ   &\qw     &\qw &&&&(a+b+c)_0  &&&&&&&&&&&&&&&&&&&\\
+      &  &&        &        &\qw     &\targ   &\qw &&&&(a+b+c)_1  &&&&&&&&&&&&&&&&&&&\\
     }
   }
   \caption{
-	Controlled-adder circuit building-block with a T-count of 8.
+	Variations on our adder construction.
+	(a) is a controlled-adder building-block with a T-count of 8.
+	The addition will only occur when the control is on.
+	(b) is a temporary-adder building-block with a T-count of 4.
+	Has the same T-count as a normal addition, but makes the result available before any uncomputation steps are needed.
   }
-  \label{fig:controlled-full-adder-block}
+  \label{fig:variations-on-full-adder-block}
 \end{figure}
 
 Decreasing the T-count of addition reduces the T-count of any construction based on addition.
-For example, in \citep{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|A\rangle$.
+For example, in \citep{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|A\rangle$ states.
 The time estimate is based on Toffolis having a T-depth of 3, and the $|A\rangle$ count estimate is based on Toffolis having a T-count of 7.
 Because Shor's algorithm is dominated by the cost of additions, our techniques (and previous work) reduce the average T-count and T-depth of its Toffolis to $2$ and $1$ respectively.
-This reduces the estimates to 9 hours and $6 \cdot 10^{11}$ distilled $|A\rangle$ states respectively.
+This reduces the estimates to 9 hours and $6 \cdot 10^{11}$ distilled $|A\rangle$ states.
 
 On top of reducing the T-count of obviously related operations like multiplication and exponentiation, reducing the T-count of addition also reduces the T-count of quantum-specific operations such as rotating qubits.
+
 For example, our improved adder allows the operation $R_Z(\theta)$ to be applied to $n$ qubits with a total T-cost $4n + O(\text{poly}(\frac{1}{\epsilon}) \lg n)$.
 First, iteratively apply our temporary adder to compute the pop count of a register containing the target qubits.
 This takes $4n + O(\lg n)$ T gates to do.
 Then, for each position $k$ in the pop count output register, synthesize and apply the operation $R_Z(\theta \cdot 2^k)$ to the qubit at that position.
-This uses a number of T gates proportional to some polynomial of the desired precision times the number of bits in the output register.
+This uses a number of T gates proportional to some polynomial of the desired bit precision, times the number of bits in the output register.
 But the output register is exponentially smaller than $n$, so this cost is negligible for large $n$.
 Finally, uncompute the temporary pop count (using no T gates).
 This applies the desired $R_Z(\theta)$ operations.
 
 Another rotation-based operation that can be implemented via an adder is the $n$-bit phase gradient operation $\text{Grad}_n = \sum_{k=0}^{2^n-1} e^{2 i \pi k / 2^n} |k\rangle \langle k|$.
-Normally this operation would be implemented by separately applying the operation $R_z(\pi 2^{-p})$ to each qubit, where $p$ is the qubit's index in the register and the number of T gates needed for each rotation depends on the maximum per-gate error $\epsilon$.
+Normally this operation would be implemented by separately applying the operation $R_z(\pi 2^{-p})$ to each qubit of the target register, where $p$ is the qubit's index in the register and the number of T gates needed for each rotation depends on the maximum per-gate error $\epsilon$.
 However, assuming a ``phase gradient register" prepared in the state $2^{-b/2} \sum_{k=0}^{2^b-1} e^{2 i \pi k / 2^b} |k\rangle$ is available, the phase gradient operation can be performed via addition using only $4n + O(1)$ T gates.
-Just add the target register into the phase gradient register, and phase kickback will apply the $\text{Grad}_n$ operation to the target.
-Ignoring the one-time cost of initializing the reusable phase gradient register, this uses only $4n + O(1)$ T gates.
+Add the target register into the phase gradient register, and phase kickback will apply the $\text{Grad}_n$ operation to the target.
+Ignoring the one-time cost of initializing the reusable phase gradient register, this uses $4n + O(1)$ T gates.
 
 Some quantum Fourier transform circuits use controlled phase gradient operations.
-Controlled phase gradients can be applied by adding into the reusable phase gradient register with controlled adders instead of uncontrolled adders.
-Assume a maximum per-gate error of $\epsilon$, start from the textbook QFT circuit based on the Cooley-Tukey algorithm from \citep{Nielsen2009}, drop negligible rotations, merge individual controlled rotations into controlled phase gradients, and apply those controlled phase gradients using controlled adders.
+Controlled phase gradients can be applied in the same way as normal phase gradients, by adding into a reusable phase gradient register.
+However, controlled adders are used instead of uncontrolled adders.
+
+Assume a maximum per-gate error of $\epsilon$, start from the textbook QFT circuit based on the Cooley-Tukey algorithm \citep{Nielsen2009}, drop negligible rotations, merge individual controlled rotations into controlled phase gradients, and apply those controlled phase gradients using controlled adders.
 The result is a simple approximate $n$-qubit QFT circuit that uses fewer than $8 n \lg \lg \frac{1}{\epsilon}$ T gates.
 
 The temporary logical-AND is useful for optimizing an even wider variety of circuits than addition is.
-Whenever Toffoli gates appear in compute/uncompute pairs, and intermediate operations are not sensitive to phase errors on the controls of the Toffoli gate (i.e. the condition in \autoref{fig:pair-definition} is satisfied), it is possible to save 4 T gates by replacing the pair of Toffoli gates with a temporary logical-AND.
+Whenever Toffoli gates appear in compute/uncompute pairs, and intermediate operations are not sensitive to phase errors on the controls of the Toffoli gate (e.g. the condition in \autoref{fig:pair-definition} is satisfied), it is possible to save 4 T gates by replacing the pair of Toffoli gates with a temporary logical-AND.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=0.7em @C=0.7em {
-      &\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &&               &&\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &\\
-      &          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&               &&          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &\\
-      &          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&\stackrel{?}{=}&&          &\ctrl{2}   &\ghost{U}       &\ctrl{2}&\qw &\\
-      &          &\targ      &\ghost{U}       &\targ   &\qw &&               &&          &\targ      &\ghost{U}       &\targ   &\qw &\\
-      &          &\qw        &\qw             &\qw     &\qw &&               &&          &\targ      &\qw             &\targ   &\qw &\\
+      &&&\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &&               &&&&\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &&            &&\ustick{n}&\diagup\qw &\qw      &\multigate{3}{U}&\qw      &\qw     &\qw &\\
+      &&&          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&               &&&&          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&            &&          &\ctrl{1}   &\qw      &\ghost{U}       &\qw      &\ctrl{1}&\qw &\\
+      &&&          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&\stackrel{?}{=}&&&&          &\ctrl{2}   &\ghost{U}       &\ctrl{2}&\qw &&\Rightarrow &&          &\ctrl{2}   &\qw      &\ghost{U}       &\qw      &\ctrl{2}&\qw &\\
+      &&&          &\targ      &\ghost{U}       &\targ   &\qw &&               &&&&          &\targ      &\ghost{U}       &\targ   &\qw &&            &&          &\qw        &\targ    &\ghost{U}       &\targ    &\qw     &\qw &\\
+      &&&\qO       &\qw        &\qw             &\qw     &\qw &&               &&&&\qO       &\targ      &\qw             &\targ   &\qw &&            &&          &           &\ctrl{-1}&\qw             &\ctrl{-1}&\qw     &    &\\
     }
   }
   \caption{
@@ -282,12 +276,12 @@ Even circuits based on simulating physical systems, not just abstract mathematic
 \section{Conclusion}
 \label{sec:conclusion}
 
-For over a decade, the T-count of addition has been known to be at most $8n - 4$ \citep{Amy2013, Barenco1995, Cuccaro2004}.
+For over a decade, the T-count of addition has been $8n - 4$ \citep{Amy2013, Barenco1995, Cuccaro2004}.
 This was conjectured to be optimal \citep{AustinDiscussionsAndEmails2017}.
 We halved the leading factor of this cost, and we did so via a construction that applies to many other circuits: the temporary logical-AND gate.
 Our work represents a significant and widely applicable improvement to the state of the art in synthesizing quantum circuits with low T gate counts.
 
-We are unsure if addition or temporary logical-AND gates can be done with fewer.
+We are unsure if addition or temporary logical-AND gates can be done with fewer T gates.
 A simple argument based on synthesizing T gates proves that the T-count of the temporary logical-AND is at least 2 in \autoref{fig:lower-bound-logical-AND}.
 Two is less than four, but we are not aware of any method for further reducing the T-count of temporary logical-ANDs or for synthesizing more T gates out of a temporary logical-AND.
 
@@ -302,14 +296,14 @@ Two is less than four, but we are not aware of any method for further reducing t
   }
   \caption{
 	Three T gates can be synthesized by performing a temporary logical-AND, one T gate, and various Clifford operations.
-	Clifford operations can't produce T gates, so the extra two gates must be coming from the temporary logical-AND.
+	Clifford operations can't produce T gates, so the extra T gates must be coming from the temporary logical-AND.
 	This proves that at least two T gates went into performing the temporary logical-AND.
   }
   \label{fig:lower-bound-logical-AND}
 \end{figure}
 
 Regardless, it is clear that other T-count improvements as significant as the ones we have made in this paper are waiting to be found.
-Not just in the construction of basic low-level operations, but in medium-level constructions and high-level constructions and generally across the whole technology stack that will be needed to perform error corrected quantum computation for the first time.
+Not just in the construction of basic low-level operations, but in medium-level constructions and high-level constructions and generally across the whole technology stack that will be needed to perform error corrected quantum computation with the surface code for the first time.
 
 
 \section{Acknowledgements}
