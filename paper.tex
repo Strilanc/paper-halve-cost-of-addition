@@ -1,7 +1,8 @@
-\documentclass[twocolumn,longbibliography]{quantumarticle-customized}
+\documentclass{quantumarticle-customized}
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage[sort,numbers]{natbib}
 \usepackage[pdfpagelabels,pdftex,bookmarks,breaklinks]{hyperref}
 \usepackage{tikz}
 \usepackage[all]{hypcap}
@@ -27,7 +28,7 @@
 \maketitle
 
 \begin{abstract}
-We improve the number of T gates needed to perform an $n$-bit adder from $8n + O(1)$ \cite{Amy2013, Cuccaro2004, AustinDiscussionsAndEmails2017} to $4n + O(1)$.
+We improve the number of T gates needed to perform an $n$-bit adder from $8n + O(1)$ \citep{Amy2013, Cuccaro2004, AustinDiscussionsAndEmails2017} to $4n + O(1)$.
 We do so via a ``temporary logical-AND" construction, which uses four T gates to store the logical-AND of two qubits into an ancilla and zero T gates to later erase the ancilla.
 
 Temporary logical-ANDs are a generally useful tool when optimizing T-count.
@@ -41,8 +42,8 @@ In addition to our $n$-bit adder circuit with T-count of $4n + O(1)$, we show ho
 \section{Introduction}
 \label{sec:introduction}
 
-The surface code is a quantum error correcting code that works on a 2D nearest-neighbour array of qubits and achieves a threshold error rate of approximately 1\% [[[[cite so much]]]].
-This makes the surface code a likely component in the architecture of future error corrected quantum computers, because 2D arrays of qubits with nearest-neighbor connections are possible with many qubit technologies [[[[cite so much]]]] and other well understood error correcting codes either have lower thresholds or require stronger connectivity [[[[cite so much]]]].
+The surface code \citep{Brav98,Denn02,Raus07,Raus07d,Fowler2012} is a quantum error correcting code that works on a 2D nearest-neighbour array of qubits and achieves a threshold error rate of approximately 1\%.
+This makes the surface code a likely component in the architecture of future error corrected quantum computers, because 2D arrays of qubits with nearest-neighbor connections are possible with many qubit technologies \citep{Schl11,Bare13,Gamb17,Leik17,Laht17} and other well understood error correcting codes either have lower thresholds or require stronger connectivity.
 
 One of the downsides of the surface code is that it has no cheap mechanism to apply non-Clifford operations such as $T$ gates.
 Instead, $T$ gates are performed by distilling and consuming $|A\rangle = \frac{1}{\sqrt{2}} (|0\rangle + e^{i \pi/4} |1\rangle)$ states.
@@ -50,16 +51,16 @@ Consuming an $|A\rangle$ state to perform a T gate is simple, but distilling $|A
 Because T gates are so expensive for the surface code, and the surface code is a likely component of future quantum computers, it is important to consider and optimize the number of T gates used by quantum circuits.
 Optimizing the T-count of basic elements of quantum circuits, such as the construction of adders and Toffoli gates, is even more important.
 
-The textbook construction of a Toffoli gate uses seven T gates \cite{Nielsen2009}.
+The textbook construction of a Toffoli gate uses seven T gates \citep{Nielsen2009}.
 When Toffoli operations are paired, i.e. when an initial Toffoli operation is later uncomputed by a second Toffoli operation, each Toffoli in the pair can omit three of the T gates from the textbook construction.
-This introduces phase errors but, assuming intermediate operations aren't poisoned by the phase errors, the second Toffoli gate can uncompute the phase errors while uncomputing the state permutation \cite{Barenco1995, Nielsen2009}.
-It is also possible to reduce the T-count of an unpaired Toffoli gate to 4 by using an ancilla qubit and a classically conditioned fixup operations \cite{Jones2013}.
+This introduces phase errors but, assuming intermediate operations aren't poisoned by the phase errors, the second Toffoli gate can uncompute the phase errors while uncomputing the state permutation \citep{Barenco1995, Nielsen2009}.
+It is also possible to reduce the T-count of an unpaired Toffoli gate to 4 by using an ancilla qubit and a classically conditioned fixup operations \citep{Jones2013}.
 
 Existing Toffoli constructions used at least 4 T gates per Toffoli gate.
-The Cuccaro adder uses $2n-1$ Toffoli gates \cite{Cuccaro2004}.
-Correspondingly, existing adder constructions have T-counts of $8n-4$ \cite{Amy2013}.
-Adders with a T-count of $8n + O(1)$ have been known for over a decade \cite{Barenco1995, Cuccaro2004}.
-The leading factor of 8 has been conjectured to be optimal \cite{AustinDiscussionsAndEmails2017}.
+The Cuccaro adder uses $2n-1$ Toffoli gates \citep{Cuccaro2004}.
+Correspondingly, existing adder constructions have T-counts of $8n-4$ \citep{Amy2013}.
+Adders with a T-count of $8n + O(1)$ have been known for over a decade \citep{Barenco1995, Cuccaro2004}.
+The leading factor of 8 has been conjectured to be optimal \citep{AustinDiscussionsAndEmails2017}.
 We show that this is not true by reducing the T-count of addition to $4n + O(1)$.
 
 \begin{figure}
@@ -143,7 +144,7 @@ We then specialize the outer-most and inner-most blocks (which act on the low bi
 \end{figure}
 
 Our adder circuits use temporary logical-AND operations.
-We define the temporary logical-AND computation (which we draw as a wire emerging from two controls), and the corresponding uncomputation (which we draw as a wire merging into two controls), in \autoref{fig:compute-logical-AND}.
+We define the temporary logical-AND computation (which we draw as a wire emerging from two controls), and the corresponding uncomputation (which we draw as a wire merging into two controls), in \autoref{fig:temporary-logical-AND}.
 Computing the temporary logical-AND has a T-count of 4, but when uncomputing a temporary logical-AND we have access to measurement and only need Clifford operations.
 
 \begin{figure}
@@ -203,7 +204,7 @@ Instead of paying $4n + O(1)$ T gates to compute the addition, and then $4n + O(
 \end{figure}
 
 Some additions, such as the ones performed by the multiplications within the modular exponentiation in Shor's algorithm, are conditioned on a control qubit.
-\cite{Coreas2017} derives a controlled-addition construction with T-count of $21n + O(1)$.
+\citep{Coreas2017} derives a controlled-addition construction with T-count of $21n + O(1)$.
 We use temporary logical-ANDs to construct an improved circuit with a T-count of $8n + O(1)$ (see \autoref{fig:controlled-full-adder-block} for the building-block).
 
 \begin{figure}
@@ -223,7 +224,7 @@ We use temporary logical-ANDs to construct an improved circuit with a T-count of
 \end{figure}
 
 Decreasing the T-count of addition reduces the T-count of any construction based on addition.
-For example, in \cite{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|A\rangle$.
+For example, in \citep{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|A\rangle$.
 The time estimate is based on Toffolis having a T-depth of 3, and the $|A\rangle$ count estimate is based on Toffolis having a T-count of 7.
 Because Shor's algorithm is dominated by the cost of additions, our techniques (and previous work) reduce the average T-count and T-depth of its Toffolis to $2$ and $1$ respectively.
 This reduces the estimates to 9 hours and $6 \cdot 10^{11}$ distilled $|A\rangle$ states respectively.
@@ -246,7 +247,7 @@ Ignoring the one-time cost of initializing the reusable phase gradient register,
 
 Some quantum Fourier transform circuits use controlled phase gradient operations.
 Controlled phase gradients can be applied by adding into the reusable phase gradient register with controlled adders instead of uncontrolled adders.
-Assume a maximum per-gate error of $\epsilon$, start from the textbook QFT circuit based on the Cooley-Tukey algorithm from \cite{Nielsen2009}, drop negligible rotations, merge individual controlled rotations into controlled phase gradients, and apply those controlled phase gradients using controlled adders.
+Assume a maximum per-gate error of $\epsilon$, start from the textbook QFT circuit based on the Cooley-Tukey algorithm from \citep{Nielsen2009}, drop negligible rotations, merge individual controlled rotations into controlled phase gradients, and apply those controlled phase gradients using controlled adders.
 The result is a simple approximate $n$-qubit QFT circuit that uses fewer than $8 n \lg \lg \frac{1}{\epsilon}$ T gates.
 
 The temporary logical-AND is useful for optimizing an even wider variety of circuits than addition is.
@@ -275,14 +276,14 @@ Merging the controls can be computed, and then uncomputed, with Toffoli gates.
 By instead iteratively merging the controls with nested temporary logical-ANDs, the Grover diffusion operation can be applied using $4n + O(1)$ T gates.
 
 For other cases where temporary logical-ANDs can be used to optimize circuits, we refer back to the introduction.
-Even circuits based on simulating physical systems, not just abstract mathematical problems, can benefit \cite{RyanEmails2017}.
+Even circuits based on simulating physical systems, not just abstract mathematical problems, can benefit \citep{RyanEmails2017}.
 
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-For over a decade, the T-count of addition has been known to be at most $8n - 4$ \cite{Amy2013, Barenco1995, Cuccaro2004}.
-This was conjectured to be optimal \cite{AustinDiscussionsAndEmails2017}.
+For over a decade, the T-count of addition has been known to be at most $8n - 4$ \citep{Amy2013, Barenco1995, Cuccaro2004}.
+This was conjectured to be optimal \citep{AustinDiscussionsAndEmails2017}.
 We halved the leading factor of this cost, and we did so via a construction that applies to many other circuits: the temporary logical-AND gate.
 Our work represents a significant and widely applicable improvement to the state of the art in synthesizing quantum circuits with low T gate counts.
 
@@ -316,7 +317,7 @@ Not just in the construction of basic low-level operations, but in medium-level 
 We thank Austin Fowler for assistance in locating relevant references, sampling the opinions of other researchers, and for comments that greatly improved our paper.
 
 
-\bibliographystyle{plain}
+\bibliographystyle{plainnat}
 \bibliography{citations}
 
 \end{document}
