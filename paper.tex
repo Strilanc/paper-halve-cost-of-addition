@@ -118,6 +118,7 @@ The outer-most and inner-most blocks (which act on the low bit and high bit resp
   }
   \caption{
 	Adder circuit building-block with a T-count of 4.
+	A variant of the Cuccaro adder building-block \citep{Cuccaro2004}.
   }
   \label{fig:full-adder-block}
 \end{figure}
@@ -230,11 +231,11 @@ Whenever Toffoli gates appear in compute/uncompute pairs, and intermediate opera
 \begin{figure}
   \resizebox{\linewidth}{!}{
     \Qcircuit @R=0.7em @C=0.7em {
-      &&&\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &&               &&&&\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &&            &&\ustick{n}&\diagup\qw &\qw      &\multigate{3}{U}&\qw      &\qw     &\qw &\\
-      &&&          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&               &&&&          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&            &&          &\ctrl{1}   &\qw      &\ghost{U}       &\qw      &\ctrl{1}&\qw &\\
-      &&&          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&\stackrel{?}{=}&&&&          &\ctrl{2}   &\ghost{U}       &\ctrl{2}&\qw &&\Rightarrow &&          &\ctrl{2}   &\qw      &\ghost{U}       &\qw      &\ctrl{2}&\qw &\\
-      &&&          &\targ      &\ghost{U}       &\targ   &\qw &&               &&&&          &\targ      &\ghost{U}       &\targ   &\qw &&            &&          &\qw        &\targ    &\ghost{U}       &\targ    &\qw     &\qw &\\
-      &&&\qO       &\qw        &\qw             &\qw     &\qw &&               &&&&\qO       &\targ      &\qw             &\targ   &\qw &&            &&          &           &\ctrl{-1}&\qw             &\ctrl{-1}&\qw     &    &\\
+      &\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &&               &&&&\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &          &&            &&\ustick{n}&\diagup\qw &\qw      &\multigate{3}{U}&\qw      &\qw     &\qw &\\
+      &          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&               &&&&          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &          &&            &&          &\ctrl{1}   &\qw      &\ghost{U}       &\qw      &\ctrl{1}&\qw &\\
+      &          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&\stackrel{?}{=}&&&&          &\ctrl{2}   &\ghost{U}       &\ctrl{2}&\qw &          &&\Rightarrow &&          &\ctrl{2}   &\qw      &\ghost{U}       &\qw      &\ctrl{2}&\qw &\\
+      &          &\targ      &\ghost{U}       &\targ   &\qw &&               &&&&          &\targ      &\ghost{U}       &\targ   &\qw &          &&            &&          &\qw        &\targ    &\ghost{U}       &\targ    &\qw     &\qw &\\
+      &          &           &                &        &    &&               &&&&\qO       &\targ      &\qw             &\targ   &\qw &|0\rangle &&            &&          &           &\ctrl{-1}&\qw             &\ctrl{-1}&\qw     &    &\\
     }
   }
   \caption{
