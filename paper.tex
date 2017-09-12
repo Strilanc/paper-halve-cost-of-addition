@@ -123,7 +123,7 @@ The outer-most and inner-most blocks (which act on the low bit and high bit resp
   \label{fig:full-adder-block}
 \end{figure}
 
-Our adder uses temporary logical-AND operations, which we draw as wires emerging out of a pair of controls then later merging into an equivalent pair of controls.
+Our adder uses temporary logical-AND operations, which we draw as wires emerging out of a pair of controls then later merging into the same pair of controls.
 \autoref{fig:temporary-logical-AND} shows how we compute the logical-AND of the two controls (which we draw as a wire emerging from two controls then heading rightward), and also the corresponding uncomputation (which we draw as a wire turning upward into two controls).
 
 Computing the temporary logical-AND has a T-count of 4, but uncomputing it has a T-count of 0.
@@ -267,7 +267,7 @@ For example, we used temporary logical-ANDs to cut the projected T-count of a st
 For over a decade, the T-count of addition has been $8n + O(1)$ \citep{Amy2013, Barenco1995, Cuccaro2004}.
 In this paper we showed how to halve the leading factor of this cost by replacing Toffolis in compute/uncompute pairs with temporary logical-ANDs.
 The temporary logical-AND is a basic circuit construction widget that can be used in many circuits, and a good example of measurement breaking the symmetry between computation and uncomputation (allowing one to be more efficient than the other).
-We covered a few examples of optimizing T-counts with our constructions but, for brevity, we leave further low hanging fruit as an exercise for the reader.
+We demonstrated how to optimize the T-count of a few tasks using our adder and the temporary logical-AND, but there are many other low hanging applications.
 
 It is interesting to consider if addition or temporary logical-ANDs can be done with still fewer T gates.
 \autoref{fig:lower-bound-logical-AND} presents a simple proof that the T-count of the temporary logical-AND is at least 2.
