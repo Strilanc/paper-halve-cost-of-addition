@@ -117,7 +117,7 @@ The outer-most and inner-most blocks (which act on the low bit and high bit resp
     }
   }
   \caption{
-	Adder circuit building-block with a T-count of 4.
+	Our adder circuit building-block, with a T-count of 4.
 	A variant of the Cuccaro adder building-block \citep{Cuccaro2004}.
   }
   \label{fig:full-adder-block}
@@ -197,7 +197,7 @@ This construction performs phase gradients using $4n + O(1)$ T gates.
 This T-count is interesting because it appears to be independent of $\epsilon$ despite the phase gradient operation involving arbitrarily small rotations.
 However, there are three ways in which our phase gradient construction's cost does depend on $\epsilon$.
 First, $\epsilon$ still bounds the minimum quality of the $|A\rangle$ states powering the T gates.
-Second, large phase gradients can be truncated down to a size $n_{\text{max}}$ asymptotically equal to $\lg \lg \epsilon$.
+Second, large phase gradients can be truncated down to a size $n_{\text{max}}$ asymptotically equal to $\lg \lg \frac{1}{\epsilon}$.
 Third, initializing the reusable phase gradient register has a one-time cost of $O(n_{\text{max}} \cdot \text{poly}(\lg \frac{1}{\epsilon}))$ T gates.
 
 
@@ -232,7 +232,7 @@ Third, initializing the reusable phase gradient register has a one-time cost of 
 \end{figure}
 
 The temporary logical-AND is useful for optimizing an even wider variety of circuits than addition is.
-Whenever Toffoli gates appear in compute/uncompute pairs, and intermediate operations are not sensitive to phase errors on the controls of the Toffoli gate (e.g. the condition in \autoref{fig:pair-definition} is satisfied), it is possible to save 4 T gates by replacing the pair of Toffoli gates with a temporary logical-AND.
+Whenever Toffoli gates appear in compute/uncompute pairs, and intermediate operations are not sensitive to phase errors on the controls of the Toffoli gate (i.e. the condition in \autoref{fig:pair-definition} is satisfied), it is possible to save 4 T gates by replacing the pair of Toffoli gates with a temporary logical-AND.
 
 \begin{figure}
   \resizebox{\linewidth}{!}{
@@ -297,7 +297,7 @@ Not just in the construction of basic low-level operations, but in medium-level 
 
 \section{Acknowledgements}
 
-We thank Austin Fowler for sampling the opinions of other researchers, assistance locating references, and comments that significantly improved this paper.
+We thank Austin Fowler for sampling the opinions of other researchers, for assistance locating references, and for comments that significantly improved this paper.
 We thank Dave Bacon for comments that significantly improved this paper.
 
 
