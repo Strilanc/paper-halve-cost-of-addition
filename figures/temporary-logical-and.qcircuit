@@ -1,0 +1,16 @@
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=0.7em @C=0.7em {
+      &x &&\ctrl{1} &\qw &x  && &&          &&\ctrl{2}&\qw     &\targ    &\qTi &\targ     &\qw &\qw &\qw &\\
+      &y &&\ctrl{1} &\qw &y  &&=&&          &&\qw     &\ctrl{1}&\targ    &\qTi &\targ     &\qw &\qw &\qw &\\
+      &  &&         &\qw &xy && &&|A\rangle &&\targ   &\targ   &\ctrl{-2}&\qT  &\ctrl{-2} &\qH &\qS &\qw &\\
+    }
+  }
+  \vspace*{0.25cm} \\
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=0.7em @C=0.7em {
+      &x  &&\ctrl{1} &\qw &x && &&&\qw &\qw    &\ctrl{1}         &\qw &&&&&&&&&&\\
+      &y  &&\ctrl{1} &\qw &y &&=&&&\qw &\qw    &\gate{Z}         &\qw &&&&&&&&&&\\
+      &xy &&\qw      &    &  && &&&\qH &\meter &\cw \cwx \bullet &    &&&&&&&&&&\\
+    }
+  }
+

@@ -1,0 +1,9 @@
+  \resizebox{\linewidth}{!}{
+    \Qcircuit @R=0.7em @C=0.7em {
+      &\qT &\qw && &&&\ctrl{2}&\qw     &\ctrl{3}&\qw     &\qw &\qw     &\ctrl{3}&\qw     &\ctrl{2}&\qw &\\
+      &\qT &\qw &&=&&&\targ   &\ctrl{1}&\qw     &\ctrl{1}&\qw &\ctrl{1}&\qw     &\ctrl{1}&\targ   &\qw &\\
+      &\qT &\qw && &&&\targ   &\ctrl{1}&\targ   &\targ   &\qT &\targ   &\targ   &\ctrl{1}&\targ   &\qw &\\
+      &    &    && &&&        &        &\targ   &\qw     &\qS &\qw     &\targ   &\qw     &        &    &\\
+    }
+  }
+
