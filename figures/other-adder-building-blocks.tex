@@ -1,0 +1,29 @@
+\documentclass[varwidth,convert]{standalone}
+\usepackage{amsmath}
+\usepackage{tikz}
+
+\input{Qcircuit}
+
+\begin{document}
+  (a) \resizebox{\linewidth}{!}{
+    \Qcircuit @R=0.7em @C=0.7em {
+      &&\text{control} &&&&\qw     &\qw     &\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\qw     &\ctrl{2}&\qw     &\ctrl{2}&\qw     &\qw &&&\text{control}               &&&&&&&&\\
+      &&&c_k            &&&\ctrl{3}&\qw     &\ctrl{4}&\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\ctrl{4}&\qw     &\qw     &\qw     &\qw     &\ctrl{3}&\qw &c_k                          &&&&&&&&&&\\
+      &&&i_k            &&&\targ   &\ctrl{2}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{2}&\ctrl{1}&\qw     &\ctrl{1}&\targ   &\qw &i_k                          &&&&&&&&&&\\
+      &&               &&&&        &        &        &    &    &       &    &    &    &       &    &    &    &       &    &    &        &        &        &\ctrl{1}&\qw     &        &    &    &&&&&&&&\\
+      &&&t_k            &&&\targ   &\ctrl{1}&\qw     &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw &\qw    &\qw &\qw &\qw     &\ctrl{1}&\qw     &\targ   &\qw     &\targ   &\qw &&&&&(t+i \cdot \text{control})_k &&&&&&&\\
+      &&               &&&&        &        &\targ   &\qw &    &c_{k+1}&    &    &    &\ldots &    &    &    &c_{k+1}&    &    &\targ   &\qw     &        &        &        &        &    &    &&&&&&&&&&\\
+    }
+  }
+
+  \vspace*{0.4cm}
+
+  (b) \resizebox{\linewidth}{!}{
+    \Qcircuit @R=0.7em @C=0.7em {
+      &a &&\ctrl{2}&\qw     &\qw     &\ctrl{3}&\qw &a          &&&&&&&&&&&&&&&&&&&&&&\\
+      &b &&\targ   &\ctrl{1}&\ctrl{1}&\targ   &\qw &b          &&&&&&&&&&&&&&&&&&&&&&\\
+      &c &&\targ   &\ctrl{1}&\targ   &\qw     &\qw &&&&(a+b+c)_0  &&&&&&&&&&&&&&&&&&&\\
+      &  &&        &        &\qw     &\targ   &\qw &&&&(a+b+c)_1  &&&&&&&&&&&&&&&&&&&\\
+    }
+  }
+\end{document}

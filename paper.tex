@@ -7,15 +7,6 @@
 \usepackage[all]{hypcap}
 \hypersetup{colorlinks,citecolor=blue,urlcolor=blue,linkcolor=blue}
 
-\input{Qcircuit}
-\newcommand{\qH}{\gate{H}}
-\newcommand{\qT}{\gate{T}}
-\newcommand{\qTi}{\gate{T^\dagger}}
-\newcommand{\qS}{\gate{S}}
-\newcommand{\qSi}{\gate{S^\dagger}}
-\newcommand{\qA}{\lstick{|A\rangle}}
-\newcommand{\qO}{\lstick{|0\rangle}}
-
 \def\sectionautorefname{Section}
 
 \begin{document}
@@ -60,34 +51,34 @@ We improve the leading factor with a construction based on the temporary logical
 The temporary logical-AND halves the number of T gates needed to perform Toffoli gates that appear in compute/uncompute pairs, and thereby halves the T-count of the Cuccaro adder from $8n + O(1)$ to $4n + O(1)$.
 
 \begin{figure}
-  \input{figures/adder.qcircuit}
+  \includegraphics[width=\linewidth]{figures/adder.pdf}
   \caption{
 	A 5-bit adder with T-count of 16.
 	Uses Clifford operations, four logical-AND computations each with a T-count of 4, and four logical-AND erasures requiring no T gates.
 	Generalizes to an $n$-bit adder with a T-count of $4n - 4$.
-	See \autoref{fig:full-adder-block} for the adder building-block and \autoref{fig:temporary-logical-AND} for the logical-AND computation and uncomputation circuits.
+	See \autoref{fig:adder-building-block} for the adder building-block and \autoref{fig:temporary-logical-AND} for the logical-AND computation and uncomputation circuits.
   }
-  \label{fig:multi-bit-adder-example}
+  \label{fig:adder}
 \end{figure}
 
 
 \section*{Results}
 
-In \autoref{fig:multi-bit-adder-example}, we present a 5-bit adder with a T-count of 16.
+In \autoref{fig:adder}, we present a 5-bit adder with a T-count of 16.
 It performs 4 temporary logical-ANDs, each with a T-count of 4.
 All other operations are Clifford operations, with no T-count.
 
-The building block of our adder is shown in \autoref{fig:full-adder-block}.
+The building block of our adder is shown in \autoref{fig:adder-building-block}.
 We construct $n$-bit adders by nesting $n$ copies of the building block inside of each other.
 The outer-most and inner-most blocks (which act on the low bit and high bit respectively) are then specialized based on the fact that they either have no carry input or no carry output.
 
 \begin{figure}
-  \input{figures/adder-building-block.qcircuit}
+  \includegraphics[width=\linewidth]{figures/adder-building-block.pdf}
   \caption{
 	Our adder circuit building-block, with a T-count of 4.
 	A variant of the Cuccaro adder building-block \citep{Cuccaro2004}.
   }
-  \label{fig:full-adder-block}
+  \label{fig:adder-building-block}
 \end{figure}
 
 Our adder uses temporary logical-AND operations, which we draw as wires emerging out of a pair of controls then later merging into the same pair of controls.
@@ -98,7 +89,7 @@ This asymmetry is due to the fact that measurement is not reversible.
 The uncomputation uses measurement in a way that the computation cannot.
 
 
-\autoref{fig:variations-on-full-adder-block} shows the building-blocks for two variations on our adder: a controlled adder and a temporary adder.
+\autoref{fig:other-adder-building-blocks} shows the building-blocks for two variations on our adder: a controlled adder and a temporary adder.
 
 Some additions, such as the ones performed by the multiplications within the modular exponentiation in Shor's algorithm, are conditioned on a control qubit.
 Our controlled adder reduces the cost of these additions from $21n + O(1)$ \citep{Coreas2017} to $8n + O(1)$.
@@ -108,7 +99,7 @@ Instead of paying $4n + O(1)$ T gates to compute an addition, and then $4n + O(1
 When the sum is no longer needed, the partially-performed addition is uncomputed instead of completed.
 
 \begin{figure}
-  \input{figures/temporary-logical-and.qcircuit}
+  \includegraphics[width=\linewidth]{figures/temporary-logical-and.pdf}
   \caption{
 	How to compute and uncompute the logical-AND of two qubits.
 	The computation circuit (top) has a T-count of 4 and a T-depth of 1.
@@ -152,7 +143,7 @@ Third, initializing the reusable phase gradient register has a one-time cost of 
 
 
 \begin{figure}
-  \input{figures/other-adder-building-blocks.qcircuit}
+  \includegraphics[width=\linewidth]{figures/other-adder-building-blocks.pdf}
   \caption{
 	Variations on our adder construction.
 	(a) is a controlled-adder building-block with a T-count of 8.
@@ -160,20 +151,20 @@ Third, initializing the reusable phase gradient register has a one-time cost of 
 	(b) is a temporary-adder building-block with a T-count of 4.
 	Has the same T-count as a normal addition, but makes the result available before any uncomputation steps are needed.
   }
-  \label{fig:variations-on-full-adder-block}
+  \label{fig:other-adder-building-blocks}
 \end{figure}
 
 The temporary logical-AND is useful for optimizing an even wider variety of circuits than addition is.
-Whenever Toffoli gates appear in compute/uncompute pairs, and intermediate operations are not sensitive to phase errors on the controls of the Toffoli gate (i.e. the condition in \autoref{fig:pair-definition} is satisfied), it is possible to save 4 T gates by replacing the pair of Toffoli gates with a temporary logical-AND.
+Whenever Toffoli gates appear in compute/uncompute pairs, and intermediate operations are not sensitive to phase errors on the controls of the Toffoli gate (i.e. the condition in \autoref{fig:paired-toffoli-replacement-rule} is satisfied), it is possible to save 4 T gates by replacing the pair of Toffoli gates with a temporary logical-AND.
 
 \begin{figure}
-  \input{figures/paired-toffoli-replacement-rule.qcircuit}
+  \includegraphics[width=\linewidth]{figures/paired-toffoli-replacement-rule.pdf}
   \caption{
 	A sufficient condition for replacing a pair of Toffoli gates with a temporary logical-AND, saving 4 T gates.\\
 	1) The later Toffoli gate must be uncomputing the earlier Toffoli gate.\\
 	2) Intermediate operations must not be sensitive to the presence of the entangled ancilla.
   }
-  \label{fig:pair-definition}
+  \label{fig:paired-toffoli-replacement-rule}
 \end{figure}
 
 For example, a simple way to construct Grover oracles starts by translating a classical predicate into a classical reversible circuit made with Toffoli gates.
@@ -198,48 +189,28 @@ The temporary logical-AND is a basic circuit construction widget that can be use
 We demonstrated how to optimize the T-count of a few tasks using our adder and the temporary logical-AND, but there are many other low hanging applications.
 
 It is interesting to consider if addition or temporary logical-ANDs can be done with still fewer T gates.
-\autoref{fig:lower-bound-logical-AND} presents a simple proof that the T-count of the temporary logical-AND is at least 2.
+\autoref{fig:synthesize-t-gates-from-temporary-logical-and} presents a simple proof that the T-count of the temporary logical-AND is at least 2.
 Although we suspect the true lower bound is 4, we also expect that there are special cases with lower T-counts.
 For example, if a task involves repeating an action several times (e.g. counting by repeatedly conditionally incrementing a register), T gates from Toffolis in uncomputation work at the end of one repetition may cancel against T gates from Toffolis in computation work at the start of the next repetition.
 
 \begin{figure}
-  \input{figures/synthesize-t-gates-from-temporary-logical-and.qcircuit}
+  \includegraphics[width=\linewidth]{figures/synthesize-t-gates-from-temporary-logical-and.pdf}
   \caption{
 	Three T gates can be synthesized by performing a temporary logical-AND, one T gate, and various Clifford operations.
 	Clifford operations can't produce T gates, so the extra T gates must be coming from the temporary logical-AND.
 	This proves that performing the temporary logical-AND requires at least two T gates.
   }
-  \label{fig:lower-bound-logical-AND}
+  \label{fig:synthesize-t-gates-from-temporary-logical-and}
 \end{figure}
 
 Regardless of whether there will be further T-count improvements for operations as basic as Toffoli gates appearing in pairs, it is clear that many other kinds of T-count optimizations are waiting to be found.
 Not just in the construction of basic low-level operations, but in medium-level constructions, high-level constructions, lower-than-circuit level constructions, and generally across the whole technology stack that will be needed to perform error corrected quantum computation with the surface code for the first time.
 
 
-\section*{Methods}
-
-The described circuits can be verified with a quantum circuit simulator, such as ProjectQ or LIQUID or Quirk.
-
-
 \section*{Acknowledgements}
 
 We thank Austin Fowler for sampling the opinions of other researchers, for assistance locating references, and for comments that significantly improved this paper.
 We thank Dave Bacon and Dmitri Maslov for comments that significantly improved this paper.
-
-
-\section*{Competing Interests}
-
-No competing interests.
-
-
-\section*{Contributions}
-
-Craig Gidney discovered and refined the temporary logical-AND construction, applied it to adders and the other discussed circuits, and is the sole author of the paper.
-
-
-\section*{Funding}
-
-Work was done while employed at Google.
 
 
 \bibliographystyle{plainnat}

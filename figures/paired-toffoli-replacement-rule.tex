@@ -1,4 +1,14 @@
-  \resizebox{\linewidth}{!}{
+\documentclass[varwidth,convert]{standalone}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+
+\input{Qcircuit}
+\newcommand{\qO}{\lstick{|0\rangle}}
+
+\begin{document}
+\vspace*{0.25cm}
+
     \Qcircuit @R=0.7em @C=0.7em {
       &\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &&               &&&&\ustick{n}&\diagup\qw &\multigate{3}{U}&\qw     &\qw &          &&            &&\ustick{n}&\diagup\qw &\qw      &\multigate{3}{U}&\qw      &\qw     &\qw &\\
       &          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &&               &&&&          &\ctrl{1}   &\ghost{U}       &\ctrl{1}&\qw &          &&            &&          &\ctrl{1}   &\qw      &\ghost{U}       &\qw      &\ctrl{1}&\qw &\\
@@ -6,5 +16,5 @@
       &          &\targ      &\ghost{U}       &\targ   &\qw &&               &&&&          &\targ      &\ghost{U}       &\targ   &\qw &          &&            &&          &\qw        &\targ    &\ghost{U}       &\targ    &\qw     &\qw &\\
       &          &           &                &        &    &&               &&&&\qO       &\targ      &\qw             &\targ   &\qw &|0\rangle &&            &&          &           &\ctrl{-1}&\qw             &\ctrl{-1}&\qw     &    &\\
     }
-  }
 
+\end{document}
