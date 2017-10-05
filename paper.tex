@@ -157,14 +157,14 @@ We thank Austin Fowler for sampling the opinions of other researchers, for assis
 We thank Dave Bacon and Dmitri Maslov for comments that significantly improved this paper.
 
 
-\bibliographystyle{plainnat}
+\bibliographystyle{npj-quantum-information}
 \bibliography{citations}
 
 \section*{Figures}
 
 
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{figures/adder.pdf}
+  \includegraphics[width=\linewidth]{adder.pdf}
   \caption{
 	A 5-bit adder with T-count of 16.
 	Uses Clifford operations, four logical-AND computations each with a T-count of 4, and four logical-AND erasures requiring no T gates.
@@ -175,7 +175,7 @@ We thank Dave Bacon and Dmitri Maslov for comments that significantly improved t
 \end{figure}
 
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{figures/adder-building-block.pdf}
+  \includegraphics[width=\linewidth]{adder-building-block.pdf}
   \caption{
 	Our adder circuit building-block, with a T-count of 4.
 	A variant of the Cuccaro adder building-block \citep{Cuccaro2004}.
@@ -184,7 +184,7 @@ We thank Dave Bacon and Dmitri Maslov for comments that significantly improved t
 \end{figure}
 
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{figures/temporary-logical-and.pdf}
+  \includegraphics[width=\linewidth]{temporary-logical-and.pdf}
   \caption{
 	How to compute and uncompute the logical-AND of two qubits.
 	The computation circuit (top) has a T-count of 4 and a T-depth of 1.
@@ -199,7 +199,7 @@ We thank Dave Bacon and Dmitri Maslov for comments that significantly improved t
 \end{figure}
 
 \begin{figure}
-  \includegraphics[width=\linewidth]{figures/other-adder-building-blocks.pdf}
+  \includegraphics[width=\linewidth]{other-adder-building-blocks.pdf}
   \caption{
 	Variations on our adder construction.
 	(a) is a controlled-adder building-block with a T-count of 8.
@@ -211,7 +211,7 @@ We thank Dave Bacon and Dmitri Maslov for comments that significantly improved t
 \end{figure}
 
 \begin{figure}
-  \includegraphics[width=\linewidth]{figures/paired-toffoli-replacement-rule.pdf}
+  \includegraphics[width=\linewidth]{paired-toffoli-replacement-rule.pdf}
   \caption{
 	A sufficient condition for replacing a pair of Toffoli gates with a temporary logical-AND, saving 4 T gates.\\
 	1) The later Toffoli gate must be uncomputing the earlier Toffoli gate.\\
@@ -221,7 +221,7 @@ We thank Dave Bacon and Dmitri Maslov for comments that significantly improved t
 \end{figure}
 
 \begin{figure}
-  \includegraphics[width=\linewidth]{figures/synthesize-t-gates-from-temporary-logical-and.pdf}
+  \includegraphics[width=\linewidth]{synthesize-t-gates-from-temporary-logical-and.pdf}
   \caption{
 	Three T gates can be synthesized by performing a temporary logical-AND, one T gate, and various Clifford operations.
 	Clifford operations can't produce T gates, so the extra T gates must be coming from the temporary logical-AND.
