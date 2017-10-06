@@ -151,14 +151,39 @@ Regardless of whether there will be further T-count improvements for operations 
 Not just in the construction of basic low-level operations, but in medium-level constructions, high-level constructions, lower-than-circuit level constructions, and generally across the whole technology stack that will be needed to perform error corrected quantum computation with the surface code for the first time.
 
 
+\section*{Methods}
+
+Not applicable. The circuits can be verified with any quantum circuit simulator.
+
+
 \section*{Acknowledgements}
 
 We thank Austin Fowler for sampling the opinions of other researchers, for assistance locating references, and for comments that significantly improved this paper.
 We thank Dave Bacon and Dmitri Maslov for comments that significantly improved this paper.
 
 
+\section*{Competing Interests}
+
+None.
+
+\section*{Contributions}
+
+Craig Gidney: sole author.
+
+\section*{Funding}
+
+None. Work was done while employed at Google.
+
 \bibliographystyle{npj-quantum-information}
 \bibliography{citations}
+
+\section*{Figure legends}
+
+None.
+
+\section*{Tables}
+
+None.
 
 \section*{Figures}
 
@@ -198,7 +223,7 @@ We thank Dave Bacon and Dmitri Maslov for comments that significantly improved t
   \label{fig:temporary-logical-AND}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \includegraphics[width=\linewidth]{other-adder-building-blocks.pdf}
   \caption{
 	Variations on our adder construction.
@@ -210,7 +235,7 @@ We thank Dave Bacon and Dmitri Maslov for comments that significantly improved t
   \label{fig:other-adder-building-blocks}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \includegraphics[width=\linewidth]{paired-toffoli-replacement-rule.pdf}
   \caption{
 	A sufficient condition for replacing a pair of Toffoli gates with a temporary logical-AND, saving 4 T gates.\\
@@ -220,7 +245,9 @@ We thank Dave Bacon and Dmitri Maslov for comments that significantly improved t
   \label{fig:paired-toffoli-replacement-rule}
 \end{figure}
 
-\begin{figure}
+\vspace{5cm}
+
+\begin{figure}[H]
   \includegraphics[width=\linewidth]{synthesize-t-gates-from-temporary-logical-and.pdf}
   \caption{
 	Three T gates can be synthesized by performing a temporary logical-AND, one T gate, and various Clifford operations.
