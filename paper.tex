@@ -18,7 +18,7 @@
 
 \begin{abstract}
 We improve the number of T gates needed to perform an $n$-bit adder from $8n + O(1)$ \citep{Amy2013, Cuccaro2004, AustinDiscussionsAndEmails2017} to $4n + O(1)$.
-We do so via a ``temporary logical-AND" construction, which uses four T gates to store the logical-AND of two qubits into an ancilla and zero T gates to later erase the ancilla.
+We do so via a ``temporary logical-AND" construction (a reframing of a result by Jones \cite{Jones2013}) which uses four T gates to store the logical-AND of two qubits into an ancilla and zero T gates to later erase the ancilla.
 Temporary logical-ANDs are a generally useful tool when optimizing T-counts.
 They can be applied to integer arithmetic, modular arithmetic, rotation synthesis, the quantum Fourier transform, Shor's algorithm, Grover oracles, and many other circuits.
 Because T gates dominate the cost of quantum computation based on the surface code, and temporary logical-ANDs are widely applicable, our constructions represent a significant reduction in projected costs of quantum computation.
@@ -34,8 +34,11 @@ This makes the surface code a likely component in the architecture of future err
 
 One of the downsides of the surface code is that it has no cheap mechanism to apply non-Clifford operations such as $T$ gates.
 Instead, $T$ gates are performed by distilling and consuming $|A\rangle = \frac{1}{\sqrt{2}} (|0\rangle + e^{i \pi/4} |1\rangle)$ states.
-Consuming an $|A\rangle$ state to perform a T gate is simple, but distilling $|A\rangle$ states has significant cost.
-Because T gates are so expensive for the surface code, and the surface code is a likely component of future quantum computers, it is important to consider and optimize the number of T gates used by quantum circuits.
+The T gate is performed via a controlled-NOT from the target qubit into the $|A\rangle$ ancilla, followed by a classical feedback step that measures the ancilla to determine if an $S$ gate is applied to the target.
+Unfortunately, distilling the $|A\rangle$ state that will ultimately be passed into this process has significant cost.
+The cost of distillation is high enough that error corrected quantum computations are expected to bottleneck waiting for $|A\rangle$ states to be produced, so that their runtime is dominated by the number of T gates (as opposed to more traditional measures of circuit depth).
+
+Because the surface code is a likely component of future quantum computers, and the runtime of computations within the surface code will be dominated in practice by the number of T gates, it is important to optimize the number of T gates used by quantum circuits.
 Optimizing the T-count of basic elements of quantum circuits, such as the construction of adders and Toffoli gates, is particularly important because any improvement is widely applicable.
 
 The textbook construction of a Toffoli gate uses seven T gates \citep{Nielsen2009}.
@@ -50,8 +53,14 @@ Existing constructions implement the Cuccaro adder's Toffolis using $8n + O(1)$ 
 This T-count can be achieved either by applying the ancilla-and-fixup construction from \citep{Jones2013} to each individual Toffoli gate, or by noting that all but one of the adder's Toffoli gates appear in compute/uncompute pairs and then applying the matched-phase-error construction from \citep{Barenco1995, Nielsen2009} to each pair.
 
 The leading factor of 8 in the T-count of an $n$-bit adder has stood for over a decade \citep{Barenco1995, Cuccaro2004, AustinDiscussionsAndEmails2017}.
-We improve the leading factor with a construction based on the temporary logical-AND, which combines ideas from both the matched-phase-error construction and the ancilla-and-fix-up construction.
-The temporary logical-AND halves the number of T gates needed to perform Toffoli gates that appear in compute/uncompute pairs, and thereby halves the T-count of the Cuccaro adder from $8n + O(1)$ to $4n + O(1)$.
+We improve the leading factor with a construction based on the temporary logical-AND, combining ideas from both the matched-phase-error construction and the ancilla-and-fix-up construction.
+We thereby halve the number of T gates needed to perform Toffoli gates that appear in compute/uncompute pairs and thus halve the T-count of Cuccaro-style adders from $8n + O(1)$ to $4n + O(1)$.
+
+Although the title of this paper focuses on addition, we consider our main {\em conceptual} contribution to be reframing the ancilla-and-fix-up construction from \cite{Jones2013} into the temporary logical-AND operation.
+This conceptualization makes it clear that the construction is more widely applicable than previously realized.
+Anytime operations share controls, even if those operations are far apart, a temporary logical-AND allows the controls to be combined once instead of once per operation (as long as intermediate operations are not sensitive to phase error in the controls).
+Addition is just one example of an operation where this is beneficial.
+We also discuss other examples.
 
 \section*{Results}
 
@@ -66,10 +75,10 @@ The outer-most and inner-most blocks (which act on the low bit and high bit resp
 % [figure 2 "adder-building-block" was here]
 
 Our adder uses temporary logical-AND operations, which we draw as wires emerging out of a pair of controls then later merging into the same pair of controls.
-\autoref{fig:temporary-logical-AND} shows how we compute the logical-AND of the two controls (which we draw as a wire emerging from two controls then heading rightward), and also the corresponding uncomputation (which we draw as a wire turning upward into two controls).
+\autoref{fig:temporary-logical-AND} shows how we compute the logical-AND of the two controls, and also the corresponding uncomputation.
 
 Computing the temporary logical-AND has a T-count of 4, but uncomputing it has a T-count of 0.
-This asymmetry is due to the fact that measurement is not reversible.
+This surprising asymmetry is due to the fact that measurement is not reversible.
 The uncomputation uses measurement in a way that the computation cannot.
 
 
@@ -109,7 +118,7 @@ This construction performs phase gradients using $4n + O(1)$ T gates.
 This T-count is interesting because it appears to be independent of $\epsilon$ despite the phase gradient operation involving arbitrarily small rotations.
 However, there are three ways in which our phase gradient construction's cost does depend on $\epsilon$.
 First, $\epsilon$ still bounds the minimum quality of the $|A\rangle$ states powering the T gates.
-Second, large phase gradients can be truncated down to a size $n_{\text{max}}$ asymptotically equal to $\lg \lg \frac{1}{\epsilon}$.
+Second, large phase gradients can be truncated down to a size $n_{\text{max}}$ asymptotically equal to $\lg \frac{1}{\epsilon}$.
 Third, initializing the reusable phase gradient register has a one-time cost of $O(n_{\text{max}} \cdot \text{poly}(\lg \frac{1}{\epsilon}))$ T gates.
 
 % [figure 4 "other-adder-building-blocks" was here]
@@ -126,10 +135,15 @@ Using temporary logical-ANDs, instead of individually translating each Toffoli g
 
 As another example, note that the temporary logical-AND can perform NOT gates with many controls by iteratively combining the controls down to a single representative ancilla.
 The representative ancilla is then used to control a CNOT onto the target qubit.
-Overall this takes $4n-4$ T gates, equivalent to previous work \cite{Jones2013}.
+This construction takes $4n-4$ T gates to perform a NOT with $n$ controls, but is simply a reframing of the nesting construction from \cite{Jones2013}.
 As when replacing Toffoli gates in compute/uncompute pairs with a temporary logical-AND, the ancilla representing the $n$ controls should be kept and used multiple times whenever possible (instead of being uncomputed and recomputed).
 
-Finally, we note that Toffolis also appear in compute/uncompute pairs in quantum circuits rooted in physics instead of abstract mathematics.
+Yet another example of a kind of circuit that benefits from the temporary logical-AND is {\em low-depth} adder circuits.
+For example, the Toffoli gates produced by the $P$ and $P^{-1}$ rounds in Draper et al's logarithmic-depth adder \cite{Draper2004} form compute/uncompute pairs that can be replaced by temporary logical-ANDs.
+Although using temporary logical-ANDs improves the T-count of logarithmic-depth adders, the resulting T-count is still worse than the T-count of linear-depth adders.
+This means that in practice, given our expectation that error corrected quantum computation will bottleneck waiting on $|A\rangle$ states to perform T gates, the linear-depth adders will often execute in less time than the logarithmic-depth adders.
+
+Finally, we note that Toffolis also appear in compute/uncompute pairs in quantum circuits rooted in physics instead of mathematics.
 For example, we used temporary logical-ANDs to cut the projected T-count of a step in a simulation algorithm under development by nearly 30\% \citep{RyanEmails2017}.
 
 
@@ -138,7 +152,7 @@ For example, we used temporary logical-ANDs to cut the projected T-count of a st
 For over a decade, the T-count of addition has been $8n + O(1)$ \citep{Amy2013, Barenco1995, Cuccaro2004}.
 In this paper we showed how to halve the leading factor of this cost by replacing Toffolis in compute/uncompute pairs with temporary logical-ANDs.
 The temporary logical-AND is a basic circuit construction widget that can be used in many circuits, and a good example of measurement breaking the symmetry between computation and uncomputation (allowing one to be more efficient than the other).
-We demonstrated how to optimize the T-count of a few tasks using our adder and the temporary logical-AND, but there are many other low hanging applications.
+We demonstrated how to optimize the T-count of a few tasks using our adder and the temporary logical-AND, but there are many other low hanging applications (e.g. converting between binary and unary, temporary sorting, applying an operation to a qubit indexed by a register in superposition, parameterized bit-rotation of a qubit register, computing the greatest common divisor of two values, etc).
 
 It is interesting to consider if addition or temporary logical-ANDs can be done with still fewer T gates.
 \autoref{fig:synthesize-t-gates-from-temporary-logical-and} presents a simple proof that the T-count of the temporary logical-AND is at least 2.
