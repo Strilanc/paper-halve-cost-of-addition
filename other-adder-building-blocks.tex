@@ -20,10 +20,10 @@
 
   (b) \resizebox{\linewidth}{!}{
     \Qcircuit @R=0.7em @C=0.7em {
-      &a &&\ctrl{2}&\qw     &\qw     &\ctrl{3}&\qw &a          &&&&&&&&&&&&&&&&&&&&&&\\
-      &b &&\targ   &\ctrl{1}&\ctrl{1}&\targ   &\qw &b          &&&&&&&&&&&&&&&&&&&&&&\\
-      &c &&\targ   &\ctrl{1}&\targ   &\qw     &\qw &&&&(a+b+c)_0  &&&&&&&&&&&&&&&&&&&\\
-      &  &&        &        &\qw     &\targ   &\qw &&&&(a+b+c)_1  &&&&&&&&&&&&&&&&&&&\\
+      &a &&\ctrl{2}&\qw     &\ctrl{3}&\qw     &\qw &a          &&&&&&&&&&&&&&&&&&&&&&\\
+      &b &&\targ   &\ctrl{1}&\targ   &\ctrl{1}&\qw &b          &&&&&&&&&&&&&&&&&&&&&&\\
+      &c &&\targ   &\ctrl{1}&\qw     &\targ   &\qw &&&&(a+b+c)_0  &&&&&&&&&&&&&&&&&&&\\
+      &  &&        &        &\targ   &\qw     &\qw &&&&(a+b+c)_1  &&&&&&&&&&&&&&&&&&&\\
     }
   }
 \end{document}
