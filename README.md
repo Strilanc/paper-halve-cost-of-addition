@@ -16,11 +16,11 @@ These instructions explain how to produce a pdf from the latex source, on a fres
 
 0. Clone this repository.
 
-    `git clone https://github.com/Strilanc/save-ts-2017.git`
+    `git clone https://ithub.com:Strilanc/paper-halve-cost-of-addition.git`
 
 0. Produce `paper.pdf`.
 
-    `cd save-ts-2017`
+    `cd paper-halve-cost-of-addition`
 
     `pdflatex paper`
 
