@@ -1,4 +1,4 @@
-\documentclass[twocolumn]{revtex4-1}
+\documentclass[twocolumn]{quantumarticle-customized}
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{graphicx}
@@ -17,7 +17,7 @@
 \email{craiggidney@google.com}
 
 \begin{abstract}
-We improve the number of T gates needed to perform an $n$-bit adder from $8n + O(1)$ \citep{Amy2013, Cuccaro2004, AustinDiscussionsAndEmails2017} to $4n + O(1)$.
+We improve the number of T gates needed to perform an $n$-bit adder from $8n + O(1)$ \cite{Amy2013, Cuccaro2004, AustinDiscussionsAndEmails2017} to $4n + O(1)$.
 We do so via a ``temporary logical-AND" construction which uses four T gates to store the logical-AND of two qubits into an ancilla and zero T gates to later erase the ancilla.
 This construction is equivalent to one by Jones \cite{Jones2013}, except that our framing makes it clear that the technique is far more widely applicable than previously realized.
 Temporary logical-ANDs can be applied to integer arithmetic, modular arithmetic, rotation synthesis, the quantum Fourier transform, Shor's algorithm, Grover oracles, and many other circuits.
@@ -29,22 +29,8 @@ In addition to our $n$-bit adder, we present an $n$-bit controlled adder circuit
 
 \section*{Introduction}
 
-The surface code \citep{Brav98,Denn02,Raus07,Raus07d,Fowler2012} is a quantum error correcting code that works on a 2D nearest-neighbour array of qubits and achieves a threshold error rate of approximately 1\%.
-This makes the surface code a likely component in the architecture of future error corrected quantum computers, because 2D arrays of qubits with nearest-neighbor connections are possible with many qubit technologies \citep{Schl11,Bare13,Gamb17,Leik17,Laht17} and other well understood error correcting codes either have lower thresholds or require stronger connectivity.
-
-One of the downsides of the surface code is that it has no cheap mechanism to apply non-Clifford operations such as $T$ gates.
-Instead, $T$ gates are performed by distilling and consuming $|T\rangle = \frac{1}{\sqrt{2}} (|0\rangle + e^{i \pi/4} |1\rangle)$ states.
-The T gate is performed via a controlled-NOT from the target qubit into the $|T\rangle$ ancilla, followed by a classical feedback step that measures the ancilla to determine if an $S$ gate is applied to the target.
-Unfortunately, distilling the $|T\rangle$ state that will ultimately be passed into this process has significant cost.
-The cost of distillation is high enough that error corrected quantum computations are expected to bottleneck waiting for $|T\rangle$ states to be produced, so that their runtime is dominated by the number of T gates (as opposed to more traditional measures of circuit depth).
-
-Because the surface code is a likely component of future quantum computers, and the runtime of computations within the surface code will be dominated in practice by the number of T gates, it is important to optimize the number of T gates used by quantum circuits.
-Optimizing the T-count of basic elements of quantum circuits, such as the construction of adders and Toffoli gates, is particularly important because any improvement is widely applicable.
-
-The textbook construction of a Toffoli gate uses seven T gates \citep{Nielsen2009}.
-When Toffoli operations are paired, i.e. when an initial Toffoli operation is later uncomputed by a second Toffoli operation, each Toffoli in the pair can omit three of the T gates from the textbook construction.
-This introduces phase errors but, assuming intermediate operations aren't sensitive to the phase errors, the second Toffoli gate can uncompute the phase errors while uncomputing the state permutation \citep{Barenco1995, Nielsen2009}.
-It is also possible to reduce the T-count of an unpaired Toffoli gate to 4 by using an ancilla qubit and a classically conditioned fixup operation \citep{Jones2013}.
+The surface code \cite{Brav98,Denn02,Raus07,Raus07d,Fowler2012} is a quantum error correcting code that works on a 2D nearest-neighbour array of qubits and achieves a threshold error rate of approximately 1\%.
+This makes the surface code a likely component in the architecture of future error corrected quantum computers, because 2D arrays of qubits with nearest-neighbor connections are possible with many qubit technologies \cite{Schl11,Bare13,Gamb17,Leik17,Laht17} and other well understood error correcting codes either have lower thresholds or require stronger connectivity.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{adder.pdf}
@@ -57,20 +43,34 @@ It is also possible to reduce the T-count of an unpaired Toffoli gate to 4 by us
   \label{fig:adder}
 \end{figure}
 
-The Cuccaro adder uses $2n + O(1)$ Toffoli gates \citep{Cuccaro2004}.
-Existing constructions implement the Cuccaro adder's Toffolis using $8n + O(1)$ T gates \citep{Barenco1995, Cuccaro2004, Amy2013}.
-This T-count can be achieved either by applying the ancilla-and-fixup construction from \citep{Jones2013} to each individual Toffoli gate, or by noting that all but one of the adder's Toffoli gates appear in compute/uncompute pairs and then applying the matched-phase-error construction from \citep{Barenco1995, Nielsen2009} to each pair.
+One of the downsides of the surface code is that it has no cheap mechanism to apply non-Clifford operations such as $T$ gates.
+Instead, $T$ gates are performed by distilling and consuming $|T\rangle = \frac{1}{\sqrt{2}} (|0\rangle + e^{i \pi/4} |1\rangle)$ states.
+The T gate is performed via a controlled-NOT from the target qubit into the $|T\rangle$ ancilla, followed by a classical feedback step that measures the ancilla to determine if an $S$ gate is applied to the target.
+Unfortunately, distilling the $|T\rangle$ state that will ultimately be passed into this process has significant cost.
+The cost of distillation is high enough that error corrected quantum computations are expected to bottleneck waiting for $|T\rangle$ states to be produced, so that their runtime is dominated by the number of T gates (as opposed to more traditional measures of circuit depth).
+
+Because the surface code is a likely component of future quantum computers, and the runtime of computations within the surface code will be dominated in practice by the number of T gates, it is important to optimize the number of T gates used by quantum circuits.
+Optimizing the T-count of basic elements of quantum circuits, such as the construction of adders and Toffoli gates, is particularly important because any improvement is widely applicable.
+
+The textbook construction of a Toffoli gate uses seven T gates \cite{Nielsen2009}.
+When Toffoli operations are paired, i.e. when an initial Toffoli operation is later uncomputed by a second Toffoli operation, each Toffoli in the pair can omit three of the T gates from the textbook construction.
+This introduces phase errors but, assuming intermediate operations aren't sensitive to the phase errors, the second Toffoli gate can uncompute the phase errors while uncomputing the state permutation \cite{Barenco1995, Nielsen2009}.
+It is also possible to reduce the T-count of an unpaired Toffoli gate to 4 by using an ancilla qubit and a classically conditioned fixup operation \cite{Jones2013}.
+
+The Cuccaro adder uses $2n + O(1)$ Toffoli gates \cite{Cuccaro2004}.
+Existing constructions implement the Cuccaro adder's Toffolis using $8n + O(1)$ T gates \cite{Barenco1995, Cuccaro2004, Amy2013}.
+This T-count can be achieved either by applying the ancilla-and-fixup construction from \cite{Jones2013} to each individual Toffoli gate, or by noting that all but one of the adder's Toffoli gates appear in compute/uncompute pairs and then applying the matched-phase-error construction from \cite{Barenco1995, Nielsen2009} to each pair.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{adder-building-block.pdf}
   \caption{
 	Our adder circuit building-block, with a T-count of 4.
-	A variant of the Cuccaro adder building-block \citep{Cuccaro2004}.
+	A variant of the Cuccaro adder building-block \cite{Cuccaro2004}.
   }
   \label{fig:adder-building-block}
 \end{figure}
 
-The leading factor of 8 in the T-count of an $n$-bit adder has stood for over a decade \citep{Barenco1995, Cuccaro2004, AustinDiscussionsAndEmails2017}.
+The leading factor of 8 in the T-count of an $n$-bit adder has stood for over a decade \cite{Barenco1995, Cuccaro2004, AustinDiscussionsAndEmails2017}.
 We improve the leading factor with a construction based on the temporary logical-AND, combining ideas from both the matched-phase-error construction and the ancilla-and-fix-up construction.
 We thereby halve the number of T gates needed to perform Toffoli gates that appear in compute/uncompute pairs and thus halve the T-count of Cuccaro-style adders from $8n + O(1)$ to $4n + O(1)$.
 
@@ -101,7 +101,7 @@ The uncomputation uses measurement in a way that the computation cannot.
 \autoref{fig:other-adder-building-blocks} shows the building-blocks for two variations on our adder: a controlled adder and a temporary adder.
 
 Some additions, such as the ones performed by the multiplications within the modular exponentiation in Shor's algorithm, are conditioned on a control qubit.
-Our controlled adder reduces the cost of these additions from $21n + O(1)$ \citep{Coreas2017} to $8n + O(1)$.
+Our controlled adder reduces the cost of these additions from $21n + O(1)$ \cite{Coreas2017} to $8n + O(1)$.
 
 Temporary adders are useful when a circuit is going to compute an addition, then later uncompute it.
 Instead of paying $4n + O(1)$ T gates to compute an addition, and then $4n + O(1)$ more T gates to uncompute the addition with a subtraction, our temporary adder stops halfway through the normal addition (after all the logical-ANDs have been computed, but before they've been uncomputed) and applies a few cleanup operations so that the sum is available for use.
@@ -123,7 +123,7 @@ When the sum is no longer needed, the partially-performed addition is uncomputed
 \end{figure}
 
 Decreasing the T-count of addition reduces the T-count of any construction based on addition.
-For example, in \citep{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|T\rangle$ states.
+For example, in \cite{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|T\rangle$ states.
 The time estimate is based on Toffolis having a T-depth of 3, and the $|T\rangle$ count estimate is based on Toffolis having a T-count of 7.
 Because Shor's algorithm is dominated by the cost of controlled additions, our techniques (and previous work) reduce the average T-count and T-depth of its Toffolis to $\sim 2.7$ and $1$ respectively.
 This reduces the time estimate to 9 hours and the count estimate to $8 \cdot 10^{11}$ distilled $|T\rangle$ states.
@@ -187,12 +187,10 @@ As when replacing Toffoli gates in compute/uncompute pairs with a temporary logi
 
 Yet another example of a kind of circuit that benefits from the temporary logical-AND is {\em low-depth} adder circuits.
 For example, the Toffoli gates produced by the $P$ and $P^{-1}$ rounds in Draper et al's logarithmic-depth adder \cite{Draper2004} form compute/uncompute pairs that can be replaced by temporary logical-ANDs.
-Although using temporary logical-ANDs improves the T-count of logarithmic-depth adders, the resulting T-count is still worse than the T-count of linear-depth adders.
-This means that in practice, given our expectation that error corrected quantum computation will bottleneck waiting on $|T\rangle$ states to perform T gates, the linear-depth adders will often execute in less time than the logarithmic-depth adders.
-In fact, by using temporary logical-ANDs to implement the classical Brent-Kung adder \cite{brent1982} in a reversible fashion, two $N$-bit numbers can be added in $O(\lg N)$ depth with a T-count of only $12N$.
+Alternatively, by using temporary logical-ANDs to implement the classical Brent-Kung adder \cite{brent1982} in a reversible fashion, two $N$-bit numbers can be added in $O(\lg N)$ depth with a T-count of only $12N$.
 
 Finally, we note that Toffolis also appear in compute/uncompute pairs in quantum circuits rooted in physics instead of mathematics.
-For example, we used temporary logical-ANDs to cut the projected T-count of a step in a chemistry algorithm under development by nearly 30\% \citep{RyanEmails2017}.
+For example, we used temporary logical-ANDs to cut the projected T-count of a step in a chemistry algorithm under development by nearly 30\% \cite{RyanEmails2017}.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{synthesize-t-gates-from-temporary-logical-and.pdf}
@@ -207,7 +205,7 @@ For example, we used temporary logical-ANDs to cut the projected T-count of a st
 
 \section*{Discussion}
 
-For over a decade, the T-count of addition has been $8n + O(1)$ \citep{Amy2013, Barenco1995, Cuccaro2004}.
+For over a decade, the T-count of addition has been $8n + O(1)$ \cite{Amy2013, Barenco1995, Cuccaro2004}.
 In this paper we showed how to halve the leading factor of this cost by replacing Toffolis in compute/uncompute pairs with temporary logical-ANDs.
 The temporary logical-AND is a basic circuit construction widget that can be used in many circuits, and a good example of measurement breaking the symmetry between computation and uncomputation (allowing one to be more efficient than the other).
 We demonstrated how to optimize the T-count of a few tasks using our adder and the temporary logical-AND, but there are many other low hanging applications (e.g. converting between binary and unary, temporary sorting, applying an operation to a qubit indexed by a register in superposition, parameterized bit-rotation of a qubit register, computing the greatest common divisor of two values, etc).
