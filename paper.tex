@@ -97,16 +97,6 @@ Computing the temporary logical-AND has a T-count of 4, but uncomputing it has a
 This surprising asymmetry is due to the fact that measurement is not reversible.
 The uncomputation uses measurement in a way that the computation cannot.
 
-
-\autoref{fig:other-adder-building-blocks} shows the building-blocks for two variations on our adder: a controlled adder and a temporary adder.
-
-Some additions, such as the ones performed by the multiplications within the modular exponentiation in Shor's algorithm, are conditioned on a control qubit.
-Our controlled adder reduces the cost of these additions from $21n + O(1)$ \cite{Coreas2017} to $8n + O(1)$.
-
-Temporary adders are useful when a circuit is going to compute an addition, then later uncompute it.
-Instead of paying $4n + O(1)$ T gates to compute an addition, and then $4n + O(1)$ more T gates to uncompute the addition with a subtraction, our temporary adder stops halfway through the normal addition (after all the logical-ANDs have been computed, but before they've been uncomputed) and applies a few cleanup operations so that the sum is available for use.
-When the sum is no longer needed, the partially-performed addition is uncomputed instead of completed.
-
 \begin{figure}
   \includegraphics[width=\linewidth]{temporary-logical-and.pdf}
   \caption{
@@ -116,11 +106,21 @@ When the sum is no longer needed, the partially-performed addition is uncomputed
 	The uncomputation circuit (bottom) uses a measure-and-fixup approach \cite{Jones2013} that requires only Clifford gates, and so has a T-count of zero.
     \\
     An alternative uncomputation construction is to simply do the reverse of the computation circuit.
-    This alternative approach has a net T-count of 2 (because an $|T\rangle$ state is recovered).
+    This alternative approach has a net T-count of 2 (because a $|T\rangle$ state is recovered).
     The resulting temporary logical-AND with a T-count of 6 would still be an improvement on existing work, but would be inferior to the measure-and-fixup approach shown above.
   }
   \label{fig:temporary-logical-AND}
 \end{figure}
+
+
+\autoref{fig:other-adder-building-blocks} shows the building-blocks for two variations on our adder: a controlled adder and a temporary adder.
+
+Some additions, such as the ones performed by the multiplications within the modular exponentiation in Shor's algorithm, are conditioned on a control qubit.
+Our controlled adder reduces the cost of these additions from $21n + O(1)$ \cite{Coreas2017} to $8n + O(1)$.
+
+Temporary adders are useful when a circuit is going to compute an addition, then later uncompute it.
+Instead of paying $4n + O(1)$ T gates to compute an addition, and then $4n + O(1)$ more T gates to uncompute the addition with a subtraction, our temporary adder stops halfway through the normal addition (after all the logical-ANDs have been computed, but before they've been uncomputed) and applies a few cleanup operations so that the sum is available for use.
+When the sum is no longer needed, the partially-performed addition is uncomputed instead of completed.
 
 Decreasing the T-count of addition reduces the T-count of any construction based on addition.
 For example, in \cite{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|T\rangle$ states.
