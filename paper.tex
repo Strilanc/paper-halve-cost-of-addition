@@ -80,6 +80,83 @@ Anytime operations share controls, even if those operations are far apart, a tem
 Addition is just one example of an operation where this is beneficial.
 We also discuss other examples.
 
+
+\section*{Resource Tradeoffs}
+
+Before we move on to our results, it is necessary to discuss the tradeoffs between various resources in a quantum computation.
+We will address two questions.
+First: why the focus on T-count?
+Why not circuit depth, or total gate complexity?
+Second: what is the opportunity cost of using ancillae qubits?
+
+In error corrected quantum computation based on the surface code, there are four main classes of gates: Pauli operations such as the X and Z gates; unitary Clifford operations such as the CNOT, H, and S gates; Measurement; and non-Clifford operations such as the T gate.
+
+Pauli operations are applied via classical post-processing, and so are considered to be free.
+They don't require anything extra to be done to the qubits.
+
+Clifford operations are applied by introducing topological braids or defects throughout the computation.
+Braids and defects are interesting because they do not fundamentally distinguish between spacelike and timelike directions.
+Long sequences of Clifford operations can be performed instantaneously by laying them out spacewise, or even backwards in time, instead of forward along the time axis.
+Multiple Clifford operations can't be scheduled to happen in the same place at the same time, but otherwise there is extreme flexibility in how Clifford operations are placed.
+With this flexibility in mind, the cost of a Clifford operation is estimated by how much ``spacetime volume" is used when laying out the associated braid/defect and comparing this against the available spacetime volume during each cycle on a quantum computer of a given size.
+
+Measurements also technically don't have to be laid out in time-respecting directions.
+However, if the result of measurement $A$ depends on an operation conditioned on measurement $B$, then measurement $A$ must happen after measurement $B$ in real time.
+So measurements have a spacetime volume cost, but they also have an unavoidable time cost.
+If a quantum computation has a measurement-depth of 100000 (i.e. has a sequence of 100000 measurements where each depends on the previous), and the round trip time between starting a measurement, reacting to it, and starting the next measurement is 10us, then the computation will take at least one second to complete.
+
+To perform non-Clifford operations, the surface code uses magic state distillation \cite{Fowler2012}.
+Distilling a $|T\rangle$ state uses roughly as much spacetime volume as 50 minimum-size \textsc{CNOT} operations.
+The T-factory used to achieve this volume has a footprint covering roughly 100 logical qubits worth of area.
+On top of the distillation costs, consuming the $|T\rangle$ state to perform a T gate involves a measurement with a conditional fixup operation,
+Meaning T gates contribute to the measurement-depth of a circuit.
+Other non-Clifford operations are approximated by decomposing them into the Clifford+T gate set.
+
+T gates use over an order of magnitude more spacetime volume than other operations, contain measurements that impose an ordering on the computation, and require huge distillation factories covering hundreds of thousands of physical qubits.
+This is why we typically focus on optimizing the T-count of quantum circuits, and treat other operations as having negligible cost.
+
+For truly huge error corrected quantum computers, with enough T factories to produce $|T\rangle$ states faster than they can be consumed, the relevant cost metric does switch from T-count to measurement-depth.
+However, anecdotally, measurement-depth is much easier to optimize than T-count.
+For example, there are adders with logarithmic measurement-depth [[[cite]]] but there are no adders with logarithmic T-counts.
+As another example, Shor's algorithm has a naive measurement-depth of $O(n^3)$ where $n$ is the number of bits in the number to factor.
+But, by parallelizing the carries, additions, and multiplications, the measurement-depth can be made polylogarithmic in $n$ [[[cite]]].
+For the foreseeable future, anytime one finds that a given circuit for Shor's algorithm is bottlenecked by measurement-depth, one can simply reduce the measurement depth by parallelizing more operations until the T-count becomes the relevant bottleneck again.
+
+We do not claim that the T-count is a perfect representation of the cost of a quantum computation, but it is a reasonable proxy to use when optimizing.
+
+We now move on to addressing the second question: what is the opportunity cost of using ancillae qubits?
+Our adder construction consumes $4n$ fewer $|T\rangle$ states than the Cuccaro adder, but in doing so it holds $n$ ancillae through a measurement-depth of $2n$.
+Is this tradeoff worth making?
+The answer to this complicates the neat and tidy ``just use the T-count" conclusion we stated just last paragraph.
+
+Obviously, if performing an addition on a small quantum computer with no space to spare for additional ancillae, it would be necessary to use an inplace adder instead of our adder.
+However, lack of space is not the only reason ancillae can be problematic.
+In particular, note that any surface area dedicated to ancillae qubits is surface area {\em not dedicated to T factories}.
+
+Suppose for the sake of argument that a T factory has a footprint covering the equivalent of 100 logical ancillae qubits, and requires a braiding depth of 5 to produce one $|T\rangle$ state (i.e. a $|T\rangle$ state comes out every $5d$ surface code cycles, where $d$ is the code distance).
+Then, in an aggregate sense, we may approximate the opportunity cost of holding an ancilla qubit as $\frac{1}{500} |T\rangle$ states per braid depth.
+
+If the opportunity cost of ancillae not used by the Cucarro adder is included in the T-count of our adder, the result is an ``effective" T-count of (roughly) $4n + \frac{1}{500} n^2$.
+This means that, for a sufficiently large addition, there must be a crossover point where ancillae are kept so long that the opportunity cost is larger than the $4 |T\rangle$ state savings.
+At this crossover, it is better to propagate carries inplace (as in the Cuccarro adder) instead of via ancillae.
+(It would still be beneficial to use ancillae for the subset of bits below the cutoff.)
+Given the very rough numbers that have already been mentioned, this would happen somewhere around the 2000'th bit of an addition.
+However, we caution that this cutoff is a very rough estimate strongly affected by other optimizations and future research and overall system design.
+For example, when a logical qubit is kept idle for a long time, it can be temporarily transformed from its ``braidable" form into a ``memory" form that uses significantly less area [[[cite]]].
+Idle ancillae, like the ones in our adder, have a lower opportunity cost than active ancillae.
+Taking advantage of this would extend the (very rough) cutoff point from being around 2000 to being around 10000.
+
+An interesting consequence of the T-count opportunity cost of ancillae, besides making inplace circuits desirable, is that it makes circuit depth relevant to the T count.
+Logarithmic-depth adders may use a constant factor more $|T\rangle$ states and ancillae than our adder, but they use exponentially less {\em ancilla-depth}.
+The T-count opportunity cost of logarithmic-depth adders grows like $\Theta(n \lg n)$ instead of like $\Theta(n^2)$.
+So, for sufficiently large $n$, their effective T-count is actually lower than the effective T-count of our ripple-carry adder (despite their raw T-count being larger).
+
+Whenever ancillae are used to save T gates, it is important to consider that there may be alternative uses of those ancillae that net more $|T\rangle$ states.
+However, these tradeoffs depend strongly on overall system design.
+System optimization is important, but it is not the subject of this paper.
+We limit ourselves to introducing basic tools (i.e. the concept of a temporary logical-AND, as well as an adder that uses $4$ T gates and one ancillae per bit instead of $8$ T gates per bit) that future system architects can combine with other techniques on a case by case basis.
+
+
 \section*{Results}
 
 In \autoref{fig:adder}, we present a 5-bit adder with a T-count of 16.
@@ -101,9 +178,9 @@ The uncomputation uses measurement in a way that the computation cannot.
   \includegraphics[width=\linewidth]{temporary-logical-and.pdf}
   \caption{
 	How to compute and uncompute the logical-AND of two qubits.
-	The computation circuit (top) has a T-count of 4 and a T-depth of 1.
+	The computation circuit (top) has a T-count of 4 and a measurement-depth of 1.
 	Note that the $|T\rangle$ state input contributes to the T-count, because $|T\rangle$ states are the resource used to perform T gates.
-	The uncomputation circuit (bottom) uses a measure-and-fixup approach \cite{Jones2013} that requires only Clifford gates, and so has a T-count of zero.
+	The uncomputation circuit (bottom) uses a measure-and-fixup approach \cite{Jones2013} that requires only Clifford gates, and so has a T-count of zero and a measurement-depth of 1.
     \\
     An alternative uncomputation construction is to simply do the reverse of the computation circuit.
     This alternative approach has a net T-count of 2 (because a $|T\rangle$ state is recovered).
@@ -123,32 +200,34 @@ Instead of paying $4n + O(1)$ T gates to compute an addition, and then $4n + O(1
 When the sum is no longer needed, the partially-performed addition is uncomputed instead of completed.
 
 Decreasing the T-count of addition reduces the T-count of any construction based on addition.
-For example, in \cite{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|T\rangle$ states.
-The time estimate is based on Toffolis having a T-depth of 3, and the $|T\rangle$ count estimate is based on Toffolis having a T-count of 7.
-Because Shor's algorithm is dominated by the cost of controlled additions, our techniques (and previous work) reduce the average T-count and T-depth of its Toffolis to $\sim 2.7$ and $1$ respectively.
-This reduces the time estimate to 9 hours and the count estimate to $8 \cdot 10^{11}$ distilled $|T\rangle$ states.
+For example, in \cite{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take $2 \cdot 10^{12}$ distilled $|T\rangle$ states and have a measurement-depth spanning 27 hours (though the actual computation would likely be bottlenecked on distillation rather than measurement).
+The time estimate assumes Toffolis have a measurement-depth of 3, and the T-count estimate assumes Toffolis have a T-count of 7.
+Shor's algorithm is dominated by the cost of controlled additions, so our techniques (and previous work) reduce the average T-count and measurement-depth of the relevant Toffolis to $\sim 2.7$ and $1$ respectively.
+This reduces the measurement-depth estimate to 9 hours and the T-count estimate to $8 \cdot 10^{11}$ distilled $|T\rangle$ states.
 
 On top of reducing the T-count of obviously-related classical operations like multiplication and exponentiation, reducing the T-count of addition also reduces the T-count of quantum-specific operations such as rotating qubits.
 
-For example, our improved adder allows the operation $R_Z(\theta)$ to be applied to $n$ qubits with a T-cost of $4n + O(\text{poly}(\lg \frac{1}{\epsilon}) \lg n)$ as follows.
+For example, our improved adder allows the operation $R_Z(\theta)$ to be applied to $n$ qubits with a T-cost of $4n + O(\lg n \lg \frac{1}{\epsilon})$ as follows.
 First, iteratively apply our temporary adder to combine the target qubits into a single binary register storing their Hamming weight.
 This takes $4n + O(\lg n)$ T gates to do.
 Then, for each position $p$ in the Hamming weight register, synthesize and apply the operation $R_Z(\theta \cdot 2^p)$ to the register qubit at that position.
-This uses a number of T gates proportional to some polynomial of the desired bit precision, times the number of bits in the Hamming weight register.
-The Hamming weight register is exponentially smaller than $n$, so this cost is negligible for large $n$.
+This uses $O(\lg n \lg \frac{1}{\epsilon}$ T gates, which is negligible in comparison to $4n$ for large $n$.
 Finally, uncompute the Hamming weight register (using no T gates).
-This applies the $n$ desired $R_Z(\theta)$ operations.
+This completes the application of the $n$ desired $R_Z(\theta)$ operations.
 
 Another quantum operation that can be implemented via an adder is the $n$-qubit phase gradient operation $\text{Grad}_n = \sum_{k=0}^{2^n-1} e^{2 i \pi k / 2^n} |k\rangle \langle k|$.
 Normally this operation would be implemented by separately applying the operation $R_Z(\pi 2^{-p})$ to each qubit of the target register, where $p$ is the qubit's index in the register and the number of T gates needed for each rotation depends on the maximum per-gate error $\epsilon$.
-However, assuming a ``phase gradient register" prepared in the state $2^{-b/2} \sum_{k=0}^{2^b-1} e^{-2 i \pi k / 2^b} |k\rangle$ is available, the phase gradient operation can be performed via addition.
+However, assuming a ``phase gradient register" prepared in the state $2^{-b/2} \sum_{k=0}^{2^b-1} e^{-2 i \pi k / 2^b} |k\rangle$ is available, the phase gradient operation can be performed via addition \cite{Kitaev2002}.
 Add the target register into the phase gradient register, and phase kickback will apply the $\text{Grad}_n$ operation to the target.
-This construction performs phase gradients using $4n + O(1)$ T gates.
-This T-count is interesting because it appears to be independent of $\epsilon$ despite the phase gradient operation involving arbitrarily small rotations.
-However, there are three ways in which our phase gradient construction's cost does depend on $\epsilon$.
+With our adder, this construction performs phase gradients using $4n + O(1)$ T gates.
+Using phase gradients implemented via our adder, approximate quantum Fourier transform was implemented with 3 to 10 times fewer T gates than previous work \cite{Nam2018}.
+
+The phase gradient T-count of $4n + O(1)$ is interesting because it appears to be independent of $\epsilon$ despite the phase gradient operation involving arbitrarily small rotations.
+(Anecdotally, this is a somewhat common occurrence when using constructions that use Toffoli gates instead of rotation synthesis.)
+However, there are three ways in which this phase gradient construction's cost does depend on $\epsilon$.
 First, $\epsilon$ still bounds the minimum quality of the $|T\rangle$ states powering the T gates.
-Second, large phase gradients can be truncated down to a size $n_{\text{max}}$ asymptotically equal to $\lg \frac{1}{\epsilon}$.
-Third, initializing the reusable phase gradient register has a one-time cost of $O(n_{\text{max}} \cdot \text{poly}(\lg \frac{1}{\epsilon}))$ T gates.
+Second, large phase gradients can be truncated down to a size $n_{\text{max}}$ asymptotically equal to $\Theta(\lg \frac{1}{\epsilon})$.
+Third, initializing the reusable phase gradient register has a one-time cost of $O(n_{\text{max}} \lg \frac{1}{\epsilon})$ T gates.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{other-adder-building-blocks.pdf}
@@ -158,6 +237,8 @@ Third, initializing the reusable phase gradient register has a one-time cost of 
 	The addition will only occur when the control is on.
 	(b) is a temporary-adder building-block with a T-count of 4.
 	Has the same T-count as a normal addition, but makes the result available before any uncomputation steps are needed.
+	Equivalent to an out-of-place adder, where the result is stored in a separate register.
+	Because uncomputing the temporary-adder uses 0 T gates, this implies that uncomputing a register storing $a+b$, when registers storing both $a$ and $b$ are available, requires 0 T gates.
   }
   \label{fig:other-adder-building-blocks}
 \end{figure}
