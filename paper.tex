@@ -91,7 +91,7 @@ Obviously, if performing an addition on a small quantum computer with no space t
 However, lack of space is not the only reason ancillae can be problematic.
 In particular, note that any qubits being used as ancillae are qubits {\em not being used in T factories}.
 
-It is possible to produce a high-quality $|T\rangle$ state in 960 units of ``spacetime volume" \cite{} (though this is certainly not a lower bound!).
+It is possible to produce a high-quality $|T\rangle$ state in 960 units of ``spacetime volume" \cite{Babbush2018} (though this is certainly not a lower bound!).
 For comparison, an ancilla qubit stored as a double-defect through $k$ serial measurements will cover at least $2k$ units of spacetime volume.
 Putting these two facts together, and ignoring the fact that T factories are discrete objects with packing constraints, we will approximate the opportunity cost of holding an ancilla as $\frac{1}{480} |T\rangle$ states per measurement-depth.
 
@@ -106,7 +106,7 @@ As the spacetime volume of T factories is improved, the cutoff {\em will} move d
 Conversely, if the spacetime volume of ancillae is improved, the cutoff moves upward.
 For example, qubits that are idle can be compressed into an inactive ``memory" form that covers six times fewer physical qubits than the double-defect form \cite{horsman2012}.
 This means that {\em idle} ancillae, like the ones in our adder, have a lower opportunity cost than active ancillae.
-This optimization increases the cutoff to $n \approx 5760$, which is beyond the size of adders that would be used to break modern RSA keys with Shor's algorithm.
+This optimization increases the cutoff to $n \approx 5760$, which is beyond the size of adders that would be used to break 4096-bit RSA keys with Shor's algorithm.
 
 An interesting consequence of ancillae having a T-count opportunity cost, besides making circuits that execute inplace desirable, is that it makes circuit depth relevant to the T-count.
 Logarithmic-depth adders may use a constant factor more $|T\rangle$ states and ancillae than our adder, but they use exponentially less {\em ancilla-depth}.
@@ -240,7 +240,7 @@ For example, the Toffoli gates produced by the $P$ and $P^{-1}$ rounds in Draper
 Alternatively, by using temporary logical-ANDs to implement the classical Brent-Kung adder \cite{brent1982} in a reversible fashion, two $n$-bit numbers can be added in $O(\lg n)$ depth with a T-count of only $12n$.
 
 Finally, we note that Toffolis also appear in compute/uncompute pairs in quantum circuits rooted in physics instead of mathematics.
-For example, we used temporary logical-ANDs to cut the projected T-count of a step in a chemistry algorithm under development by nearly 30\% \cite{RyanEmails2017}.
+For example, we used temporary logical-ANDs to cut the T-count of a chemistry algorithm in preparation by nearly 50\% \cite{Babbush2018}.
 
 
 \section*{Discussion}
