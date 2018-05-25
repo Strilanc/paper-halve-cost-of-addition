@@ -22,7 +22,7 @@ We do so via a ``temporary logical-AND" construction which uses four T gates to 
 This construction is equivalent to one by Jones \cite{Jones2013}, except that our framing makes it clear that the technique is far more widely applicable than previously realized.
 Temporary logical-ANDs can be applied to integer arithmetic, modular arithmetic, rotation synthesis, the quantum Fourier transform, Shor's algorithm, Grover oracles, and many other circuits.
 Because T gates dominate the cost of quantum computation based on the surface code, and temporary logical-ANDs are widely applicable, this represents a significant reduction in projected costs of quantum computation.
-In addition to our $n$-bit adder, we present an $n$-bit controlled adder circuit with T-count of $8n + O(1)$, a temporary adder that can be computed for the same cost as the normal adder but whose result can be kept until it is later uncomputed without using T gates, and discuss some other constructions whose T-count is improved by the temporary logical-AND.
+In addition to our $n$-bit adder, we present an $n$-bit controlled adder circuit with T-count of $8n + O(1)$, an out-of-place adder that can be uncomputed without using T gates, and discuss some other constructions whose T-count is improved by the temporary logical-AND.
 \end{abstract}
 
 \maketitle
@@ -37,7 +37,7 @@ This makes the surface code a likely component in the architecture of future err
   \caption{
 	A 5-bit adder with T-count of 16.
 	Uses Clifford operations, four logical-AND computations each with a T-count of 4, and four logical-AND erasures requiring no T gates.
-	Generalizes to an $n$-bit adder with a T-count of $4n - 4$.
+	Generalizes to an $n$-bit adder with a T-count of $4n - 4$ and a measurement depth of $2n - 2$.
 	See \autoref{fig:adder-building-block} for the adder building-block and \autoref{fig:temporary-logical-AND} for the logical-AND computation and uncomputation circuits.
   }
   \label{fig:adder}
@@ -47,7 +47,8 @@ One of the downsides of the surface code is that it has no cheap mechanism to ap
 Instead, $T$ gates are performed by distilling and consuming $|T\rangle = \frac{1}{\sqrt{2}} (|0\rangle + e^{i \pi/4} |1\rangle)$ states.
 The T gate is performed via a controlled-NOT from the target qubit into the $|T\rangle$ ancilla, followed by a classical feedback step that measures the ancilla to determine if an $S$ gate is applied to the target.
 Unfortunately, distilling the $|T\rangle$ state that will ultimately be passed into this process has significant cost.
-The cost of distillation is high enough that error corrected quantum computations are expected to bottleneck waiting for $|T\rangle$ states to be produced, so that their runtime is dominated by the number of T gates (as opposed to more traditional measures of circuit depth).
+The cost of distillation is high enough that error corrected quantum computations are expected to bottleneck waiting for $|T\rangle$ states to be produced, so that their runtime is dominated by the number of T gates (as opposed to being dominated by gate count, circuit depth, or even measurement depth).
+For example, although our adder has the same measurement depth as the Cuccaro adder (i.e. $2n + O(1)$), we still expect our adder to execute more quickly in practice on early error corrected machines (assuming there is room for the $n$ ancillae our adder requires).
 
 Because the surface code is a likely component of future quantum computers, and the runtime of computations within the surface code will be dominated in practice by the number of T gates, it is important to optimize the number of T gates used by quantum circuits.
 Optimizing the T-count of basic elements of quantum circuits, such as the construction of adders and Toffoli gates, is particularly important because any improvement is widely applicable.
@@ -64,7 +65,7 @@ This T-count can be achieved either by applying the ancilla-and-fixup constructi
 \begin{figure}
   \includegraphics[width=\linewidth]{adder-building-block.pdf}
   \caption{
-	Our adder circuit building-block, with a T-count of 4.
+	Our adder circuit building-block, with a T-count of 4 and a measurement-depth of 2.
 	A variant of the Cuccaro adder building-block \cite{Cuccaro2004}.
   }
   \label{fig:adder-building-block}
@@ -79,6 +80,47 @@ This conceptualization makes it clear that the construction is more widely appli
 Anytime operations share controls, even if those operations are far apart, a temporary logical-AND allows the controls to be combined once instead of once per operation (as long as intermediate operations are not sensitive to phase error in the controls).
 Addition is just one example of an operation where this is beneficial.
 We also discuss other examples.
+
+
+\section*{Opportunity Cost of Ancillae}
+
+Our adder construction consumes $4n$ fewer $|T\rangle$ states than the Cuccaro adder, but in doing so it holds $n$ ancillae through a measurement-depth of $2n$.
+Before we discuss our adder construction, we must first discuss the question: is that tradeoff worth making?
+
+Obviously, if performing an addition on a small quantum computer with no space to spare for additional ancillae, it would be not be possible to use our adder whereas Cuccaro's would still be viable.
+However, lack of space is not the only reason ancillae can be problematic.
+In particular, note that any qubits being used as ancillae are qubits {\em not being used in T factories}.
+
+It is possible to produce a high-quality $|T\rangle$ state in 960 units of ``spacetime volume" \cite{Babbush2018} (though this is certainly not a lower bound!).
+For comparison, an ancilla qubit stored as a double-defect through $k$ serial measurements will cover at least $2k$ units of spacetime volume.
+Putting these two facts together, and ignoring the fact that T factories are discrete objects with packing constraints, we will approximate the opportunity cost of holding an ancilla as $\frac{1}{480} |T\rangle$ states per measurement-depth.
+
+With the above in mind, the ``effective" T-count of our adder, including the opportunity cost of ancillae (and accounting for the fact that some are kept for longer than others), is $\frac{1}{480} n^2 + 4n$ whereas the effective T-count of the Cuccaro adder is $8n$.
+This implies that our adder is worse than the Cucarro adder when $n > 1920$.
+However, switching adders at $n=1920$ ignores the possibility of using a hybrid of both adders where bit positions below a cutoff propagate carries via ancillae as in our adder and bit positions above the cutoff propagate carries inline as in the Cuccaro adder.
+In a hybrid adder of this type, the cutoff actually occurs at $n=960$.
+
+We caution that the cutoff of 960 that we just estimated is not a fixed constant.
+It is affected by other optimizations, by future research, and by overall system design.
+As the spacetime volume of T factories is improved, the cutoff {\em will} move downward.
+Conversely, if the spacetime volume of ancillae is improved, the cutoff moves upward.
+For example, qubits that are idle can be compressed into an inactive ``memory" form that covers six times fewer physical qubits than the double-defect form \cite{horsman2012}.
+This means that {\em idle} ancillae, like the ones in our adder, have a lower opportunity cost than active ancillae.
+This optimization increases the cutoff to $n \approx 5760$, which is beyond the size of adders that would be used to break 4096-bit RSA keys with Shor's algorithm.
+
+An interesting consequence of ancillae having a T-count opportunity cost, besides making circuits that execute inplace desirable, is that it makes circuit depth relevant to the T-count.
+Logarithmic-depth adders may use a constant factor more $|T\rangle$ states and ancillae than our adder, but they use exponentially less {\em ancilla-depth}.
+The T-count opportunity cost of logarithmic-depth adders grows like $\Theta(n \lg n)$ instead of like $\Theta(n^2)$.
+So, despite their ``raw" T-count being larger, for sufficiently large $n$ their effective T-count must become lower than the effective T-count of our ripple-carry adder.
+
+Beware that the previous paragraph only applies in the regime where there are enough physical qubits to support enough T factories to properly feed a logarithmic-depth adder.
+In the early error corrected regime, when only a few T factories are available, the constant-factor penalty on the T-count of logarithmic-depth adders will result in a runtime that is longer than the runtime of ripple-carry adders (because they both have to wait for $|T\rangle$ states).
+It is only as more and more T factories become available that the parallelism inherent to logarithmic-depth adders becomes accessible, overcomes the constant-factor T-count penalty, and triggers a gradual transition away from ripple-carry adders.
+
+Whenever ancillae are used to save T gates, it is important to consider that there may be alternative uses of those ancillae that net even more $|T\rangle$ states (or other desirable resources).
+These tradeoffs depend on overall system design.
+Overall system optimization is important, but it is not the subject of this paper and so we will limit ourselves to introducing basic tools (e.g. the concept of a temporary logical-AND, as well as an adder that uses $4$ T gates and one ancillae per bit instead of $8$ T gates per bit) that future system architects can combine with other techniques on a case by case basis.
+
 
 \section*{Results}
 
@@ -101,9 +143,9 @@ The uncomputation uses measurement in a way that the computation cannot.
   \includegraphics[width=\linewidth]{temporary-logical-and.pdf}
   \caption{
 	How to compute and uncompute the logical-AND of two qubits.
-	The computation circuit (top) has a T-count of 4 and a T-depth of 1.
+	The computation circuit (top) has a T-count of 4 and a measurement-depth of 1.
 	Note that the $|T\rangle$ state input contributes to the T-count, because $|T\rangle$ states are the resource used to perform T gates.
-	The uncomputation circuit (bottom) uses a measure-and-fixup approach \cite{Jones2013} that requires only Clifford gates, and so has a T-count of zero.
+	The uncomputation circuit (bottom) uses a measure-and-fixup approach \cite{Jones2013} that requires only Clifford gates, and so has a T-count of zero and a measurement-depth of 1.
     \\
     An alternative uncomputation construction is to simply do the reverse of the computation circuit.
     This alternative approach has a net T-count of 2 (because a $|T\rangle$ state is recovered).
@@ -113,42 +155,48 @@ The uncomputation uses measurement in a way that the computation cannot.
 \end{figure}
 
 
-\autoref{fig:other-adder-building-blocks} shows the building-blocks for two variations on our adder: a controlled adder and a temporary adder.
+\autoref{fig:other-adder-building-blocks} shows the building-blocks for two variations on our adder: a controlled adder and an out-of-place adder.
 
 Some additions, such as the ones performed by the multiplications within the modular exponentiation in Shor's algorithm, are conditioned on a control qubit.
 Our controlled adder reduces the cost of these additions from $21n + O(1)$ \cite{Coreas2017} to $8n + O(1)$.
 
-Temporary adders are useful when a circuit is going to compute an addition, then later uncompute it.
-Instead of paying $4n + O(1)$ T gates to compute an addition, and then $4n + O(1)$ more T gates to uncompute the addition with a subtraction, our temporary adder stops halfway through the normal addition (after all the logical-ANDs have been computed, but before they've been uncomputed) and applies a few cleanup operations so that the sum is available for use.
-When the sum is no longer needed, the partially-performed addition is uncomputed instead of completed.
+Out-of-place adders are useful when a circuit is going to compute an addition, use it for awhile, then uncompute it.
+Our out-of-place adder does not improve on the cost of computing an out-of-place addition.
+However, because our out-of-place adder is based on computing a temporary logical-AND, its inverse does not use any T gates.
+This makes it possible to uncompute an out-of-place addition while consuming no T gates.
 
 Decreasing the T-count of addition reduces the T-count of any construction based on addition.
-For example, in \cite{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take 27 hours and $2 \cdot 10^{12}$ distilled $|T\rangle$ states.
-The time estimate is based on Toffolis having a T-depth of 3, and the $|T\rangle$ count estimate is based on Toffolis having a T-count of 7.
-Because Shor's algorithm is dominated by the cost of controlled additions, our techniques (and previous work) reduce the average T-count and T-depth of its Toffolis to $\sim 2.7$ and $1$ respectively.
-This reduces the time estimate to 9 hours and the count estimate to $8 \cdot 10^{11}$ distilled $|T\rangle$ states.
+For example, in \cite{Fowler2012} it is estimated that factoring a 2048-bit number on a surface-code-based quantum computer would take $2 \cdot 10^{12}$ distilled $|T\rangle$ states and have a measurement-depth spanning 27 hours (though the actual computation would likely be bottlenecked on distillation rather than measurement).
+The time estimate assumes Toffolis have a measurement-depth of 3, and the T-count estimate assumes Toffolis have a T-count of 7.
+Shor's algorithm is dominated by the cost of controlled additions.
+With our techniques, the average T-count and measurement-depth of the relevant Toffolis is $\sim 2.7$ and $1$ respectively.
+With these numbers, the measurement-depth estimate is reduced to 9 hours and the T-count estimate is reduced to $8 \cdot 10^{11}$ distilled $|T\rangle$ states.
 
 On top of reducing the T-count of obviously-related classical operations like multiplication and exponentiation, reducing the T-count of addition also reduces the T-count of quantum-specific operations such as rotating qubits.
 
-For example, our improved adder allows the operation $R_Z(\theta)$ to be applied to $n$ qubits with a T-cost of $4n + O(\text{poly}(\lg \frac{1}{\epsilon}) \lg n)$ as follows.
-First, iteratively apply our temporary adder to combine the target qubits into a single binary register storing their Hamming weight.
-This takes $4n + O(\lg n)$ T gates to do.
-Then, for each position $p$ in the Hamming weight register, synthesize and apply the operation $R_Z(\theta \cdot 2^p)$ to the register qubit at that position.
-This uses a number of T gates proportional to some polynomial of the desired bit precision, times the number of bits in the Hamming weight register.
-The Hamming weight register is exponentially smaller than $n$, so this cost is negligible for large $n$.
+For example, our improved adder allows the operation $R_Z(\theta)$ to be applied to $n$ qubits with a T-cost of $4n + O(\lg n \lg \frac{1}{\epsilon})$ as follows.
+First, we must reduce the $n$ target qubits into a binary ``Hamming weight register", which indicates how many of the target qubits are \textsc{on}.
+We start by assigning each qubit a ``weight" of 1.
+We then start applying our out-of-place adder building-block to triplets of qubits of the same weight.
+Each application of the adder will turn 3 relevant qubits of weight $w$ into 1 relevant qubit of weight $w$ and 1 relevant qubit of weight $2w$.
+Note that this means the number of relevant qubits goes down by 1 per adder application, except when only 2 qubits of weight $w$ remain (which, as long as lower-weight qubits are always added first, occurs at most $\lg n$ times).
+Since we start with $n$ qubits, and the Hamming weight register will have $\lg n$ qubits, and the two-remaining-qubits-of-same-weight case occurs at most $\lg n$ times, it will take at most $n - \lg n + \lg n = n$ adder applications to reduce the $n$ initial qubits into the $\lg n$ qubits forming the Hamming weight register.
+Therefore, computing the Hamming weight register has a T-count of at most $4n$ (whereas uncomputing it will be free).
+Now, for each position $p$ in the Hamming weight register, synthesize and apply the operation $R_Z(\theta \cdot 2^p)$ to the register qubit at that position.
+This uses $O(\lg n \lg \frac{1}{\epsilon})$ T gates, which is negligible in comparison to $4n$ for large $n$.
 Finally, uncompute the Hamming weight register (using no T gates).
-This applies the $n$ desired $R_Z(\theta)$ operations.
+This completes the application of the $n$ desired $R_Z(\theta)$ operations.
 
 Another quantum operation that can be implemented via an adder is the $n$-qubit phase gradient operation $\text{Grad}_n = \sum_{k=0}^{2^n-1} e^{2 i \pi k / 2^n} |k\rangle \langle k|$.
 Normally this operation would be implemented by separately applying the operation $R_Z(\pi 2^{-p})$ to each qubit of the target register, where $p$ is the qubit's index in the register and the number of T gates needed for each rotation depends on the maximum per-gate error $\epsilon$.
-However, assuming a ``phase gradient register" prepared in the state $2^{-b/2} \sum_{k=0}^{2^b-1} e^{-2 i \pi k / 2^b} |k\rangle$ is available, the phase gradient operation can be performed via addition.
+However, assuming a ``phase gradient register" prepared in the state $2^{-b/2} \sum_{k=0}^{2^b-1} e^{-2 i \pi k / 2^b} |k\rangle$ is available, the phase gradient operation can be performed via addition \cite{Kitaev2002}.
 Add the target register into the phase gradient register, and phase kickback will apply the $\text{Grad}_n$ operation to the target.
-This construction performs phase gradients using $4n + O(1)$ T gates.
+With our adder, this construction performs phase gradients using $4n + O(1)$ T gates.
 This T-count is interesting because it appears to be independent of $\epsilon$ despite the phase gradient operation involving arbitrarily small rotations.
-However, there are three ways in which our phase gradient construction's cost does depend on $\epsilon$.
+However, there are three ways in which this phase gradient construction's cost does depend on $\epsilon$.
 First, $\epsilon$ still bounds the minimum quality of the $|T\rangle$ states powering the T gates.
-Second, large phase gradients can be truncated down to a size $n_{\text{max}}$ asymptotically equal to $\lg \frac{1}{\epsilon}$.
-Third, initializing the reusable phase gradient register has a one-time cost of $O(n_{\text{max}} \cdot \text{poly}(\lg \frac{1}{\epsilon}))$ T gates.
+Second, large phase gradients can be truncated down to a size $n_{\text{max}}$ asymptotically equal to $\Theta(\lg \frac{1}{\epsilon})$.
+Third, initializing the reusable phase gradient register has a one-time cost of $O(n_{\text{max}} \lg \frac{1}{\epsilon})$ T gates.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{other-adder-building-blocks.pdf}
@@ -156,8 +204,9 @@ Third, initializing the reusable phase gradient register has a one-time cost of 
 	Variations on our adder construction.
 	(a) is a controlled-adder building-block with a T-count of 8.
 	The addition will only occur when the control is on.
-	(b) is a temporary-adder building-block with a T-count of 4.
-	Has the same T-count as a normal addition, but makes the result available before any uncomputation steps are needed.
+	(b) is a standard out-of-place adder building-block, modified to use a temporary logical-AND.
+	Because of this modification, the inverse of this building-block does not use any T gates.
+	This means that uncomputing a register storing $a+b$, when registers storing both $a$ and $b$ are available, requires no T gates.
   }
   \label{fig:other-adder-building-blocks}
 \end{figure}
@@ -179,6 +228,7 @@ For example, a simple way to construct Grover oracles starts by translating a cl
 This reversible circuit is then used on a quantum computer to compute an output qubit, and a Z gate is applied to the output qubit before the circuit is run in reverse to uncompute the output qubit.
 Every Toffoli gate generated by this construction is part of a compute/uncompute pair (each Toffoli in the computation will match a Toffoli in the uncomputation).
 Using temporary logical-ANDs, instead of individually translating each Toffoli gate into T gates, halves the T-count of this approach to constructing Grover oracles.
+(However, note that this naive optimization tends to require an unreasonable number of ancillae and will not generalize to all methods for producing Grover oracles.)
 
 As another example, note that the temporary logical-AND can perform NOT gates with many controls by iteratively combining the controls down to a single representative ancilla.
 The representative ancilla is then used to control a CNOT onto the target qubit.
@@ -187,20 +237,10 @@ As when replacing Toffoli gates in compute/uncompute pairs with a temporary logi
 
 Yet another example of a kind of circuit that benefits from the temporary logical-AND is {\em low-depth} adder circuits.
 For example, the Toffoli gates produced by the $P$ and $P^{-1}$ rounds in Draper et al's logarithmic-depth adder \cite{Draper2004} form compute/uncompute pairs that can be replaced by temporary logical-ANDs.
-Alternatively, by using temporary logical-ANDs to implement the classical Brent-Kung adder \cite{brent1982} in a reversible fashion, two $N$-bit numbers can be added in $O(\lg N)$ depth with a T-count of only $12N$.
+Alternatively, by using temporary logical-ANDs to implement the classical Brent-Kung adder \cite{brent1982} in a reversible fashion, two $n$-bit numbers can be added in $O(\lg n)$ depth with a T-count of only $12n$.
 
 Finally, we note that Toffolis also appear in compute/uncompute pairs in quantum circuits rooted in physics instead of mathematics.
-For example, we used temporary logical-ANDs to cut the projected T-count of a step in a chemistry algorithm under development by nearly 30\% \cite{RyanEmails2017}.
-
-\begin{figure}
-  \includegraphics[width=\linewidth]{synthesize-t-gates-from-temporary-logical-and.pdf}
-  \caption{
-	Three T gates can be synthesized by performing a temporary logical-AND, one T gate, and various Clifford operations.
-	Clifford operations can't produce T gates, so the extra T gates must be coming from the temporary logical-AND.
-	This proves that performing the temporary logical-AND requires at least two T gates.
-  }
-  \label{fig:synthesize-t-gates-from-temporary-logical-and}
-\end{figure}
+For example, we used temporary logical-ANDs to cut the T-count of a chemistry algorithm in preparation by nearly 50\% \cite{Babbush2018}.
 
 
 \section*{Discussion}
@@ -211,17 +251,17 @@ The temporary logical-AND is a basic circuit construction widget that can be use
 We demonstrated how to optimize the T-count of a few tasks using our adder and the temporary logical-AND, but there are many other low hanging applications (e.g. converting between binary and unary, temporary sorting, applying an operation to a qubit indexed by a register in superposition, parameterized bit-rotation of a qubit register, computing the greatest common divisor of two values, etc).
 
 It is interesting to consider if addition or temporary logical-ANDs can be done with still fewer T gates.
-\autoref{fig:synthesize-t-gates-from-temporary-logical-and} presents a simple proof that the T-count of the temporary logical-AND is at least 2.
-Although we suspect the true lower bound is 4, we also expect that there are special cases with lower T-counts.
-For example, if a task involves repeating an action several times (e.g. counting by repeatedly conditionally incrementing a register), T gates from Toffolis in uncomputation work at the end of one repetition may cancel against T gates from Toffolis in computation work at the start of the next repetition.
+In \cite{Howard2017} it is proven that a Toffoli gate requires at least 4 T gates, though the specific nature of the proof does not eliminate the possibility that $n$ Toffolis could be implemented with fewer than $4n$ T gates for some large $n$.
+Although we suspect the true lower bound really is 4, we also expect that there are regardless many opportunities to optimize how many T gates go into performing Toffolis.
+For example, if a task involves repeating an action several times, T gates inside Toffolis at the end of one repetition could cancel out T gates in work being done at the start of the next repetition.
 
-Regardless of whether there will be further T-count improvements for operations as basic as Toffoli gates appearing in pairs, it is clear that many other kinds of T-count optimizations are waiting to be found.
+Regardless of whether there will be further T-count improvements for operations as basic as paired Toffoli gates, it is clear that many other kinds of T-count optimizations are waiting to be found.
 Not just in the construction of basic low-level operations, but in medium-level constructions, high-level constructions, lower-than-circuit level constructions, and generally across the whole technology stack that will be needed to perform error corrected quantum computation with the surface code for the first time.
 
 
 \section*{Acknowledgements}
 
-We thank Austin Fowler for sampling the opinions of other researchers, for assistance locating references, and for comments that significantly improved this paper.
+We thank Austin Fowler for sampling the opinions of other researchers, for assistance locating references, for checking our ancilla opportunity cost estimates, and for comments that significantly improved this paper.
 We thank Dave Bacon and Dmitri Maslov for comments that significantly improved this paper.
 
 \bibliographystyle{plain}
